@@ -3,25 +3,21 @@
 
 CREATE TABLE TinyIntExample (
 	tinyIntsSigned TINYINT,
-    tinyIntsUnsigned TINYINT UNSIGNED,
-    smallInts SMALLINT,
-    mediumInts MEDIUMINT,
-    ints INT,
-    bigInts BIGINT
+    tinyIntsUnsigned TINYINT UNSIGNED
 );
 -- Signed TINYINT Example
 INSERT INTO TinyIntExample (tinyIntsSigned) VALUES (0), (127), (-128); -- max values within range limits
 INSERT INTO TinyIntExample (tinyIntsSigned) VALUES (128); -- Out of Range Value
 INSERT INTO TinyIntExample (tinyIntsSigned) VALUES (-129); -- Out of Range Value
-SELECT * FROM TinyIntExample;
+SELECT tinyIntsSigned FROM TinyIntExample WHERE tinyIntsSigned IS NOT NULL;
 
 -- Unsigned TINYINT Example
 INSERT INTO TinyIntExample (tinyIntsUnsigned) VALUES (0), (255); -- max values within range limits
 INSERT INTO TinyIntExample (tinyIntsUnsigned) VALUES (-1); -- Out of Range Value
 INSERT INTO TinyIntExample (tinyIntsUnsigned) VALUES (256); -- Out of Range Value
-SELECT * FROM TinyIntExample;
+SELECT tinyIntsUnsigned FROM TinyIntExample WHERE tinyIntsUnsigned IS NOT NULL;
 
--- DROP TABLE TinyIntExample;
+ DROP TABLE TinyIntExample;
 
 
 
@@ -49,4 +45,4 @@ INSERT INTO IntegerExample (tinyIntsSigned, smallIntsSigned, mediumIntsSigned, i
     
 SELECT * FROM IntegerExample;
 
--- DROP TABLE IntegerExample;
+ DROP TABLE IntegerExample;
