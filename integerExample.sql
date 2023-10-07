@@ -8,7 +8,7 @@ CREATE TABLE TinyIntExample (
     tinyIntsUnsigned TINYINT UNSIGNED
 );
 -- Signed TINYINT Example
-INSERT INTO TinyIntExample (tinyIntsSigned) VALUES (0), (127), (-128); -- max values within range limits
+INSERT INTO TinyIntExample (tinyIntsSigned) VALUES (0), (127), (-128); -- insert max values within range limits into the table
 -- These next two lines will throw errors, becasue the values being inserted are out of range.
 INSERT INTO TinyIntExample (tinyIntsSigned) VALUES (128); -- Out of Range Value
 INSERT INTO TinyIntExample (tinyIntsSigned) VALUES (-129); -- Out of Range Value
@@ -17,7 +17,7 @@ INSERT INTO TinyIntExample (tinyIntsSigned) VALUES (-129); -- Out of Range Value
 SELECT tinyIntsSigned FROM TinyIntExample WHERE tinyIntsSigned IS NOT NULL;
 
 -- Unsigned TINYINT Example
-INSERT INTO TinyIntExample (tinyIntsUnsigned) VALUES (0), (255); -- max values within range limits
+INSERT INTO TinyIntExample (tinyIntsUnsigned) VALUES (0), (255); -- insert max values within range limits into the table
 -- These next two lines will throw errors, becasue the values being inserted are out of range.
 INSERT INTO TinyIntExample (tinyIntsUnsigned) VALUES (-1); -- Out of Range Value
 INSERT INTO TinyIntExample (tinyIntsUnsigned) VALUES (256); -- Out of Range Value
