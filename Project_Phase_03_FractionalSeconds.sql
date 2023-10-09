@@ -1,5 +1,10 @@
 -- Fractional Seconds 
 
+-- This bit of code stops MySQL from truncating the fractional part of time
+SET @@sql_mode = sys.list_add(
+@@sql_mode, 'TIME_TRUNCATE_FRACTIONAL'
+);
+
 -- Creates a table showing a given time and rounding that time to a specified length
 use project_phase_03;
 Create table FractionalSeconds (
