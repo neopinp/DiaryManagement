@@ -20,6 +20,6 @@ create table DATEandTIME (
 
 -- Signed DATE example
 insert into DATEandTIME (CurrentDate, CurrentTIME, CurrentTIME6, CurrentTIME5, CurrentTIME4, CurrentTIME3, CurrentTIME2, CurrentTIME1, CurrentTIME0, CurrentYEAR, CurrentDATETIME, CurrentTIMESTAMP)
-	values ('2023-10-09', '16:39:143665', '16:39:143665', '16:39:143665', '16:39:143665', '16:39:143665', '16:39:143665', '16:39:143665', '16:39:143665', '16:39:143665', NOW(),NOW());
+	values ('2023-10-09', '16:39.143665', '16:39.143665', '16:39.143665', '16:39.143665', '16:39.143665', '16:39.143665', '16:39.143665', '16:39.143665', '2023', NOW(),NOW());
     
 -- drop table DATEandTIME;
