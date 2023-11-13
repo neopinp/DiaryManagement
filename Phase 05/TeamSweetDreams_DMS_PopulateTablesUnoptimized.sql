@@ -70,7 +70,7 @@ INSERT INTO teamsweetdreams_dms.Location(place_id, address_ln_1, address_ln2, ci
  
  -- Insert into statements for the 'PERMISSIONS' table:
 INSERT INTO teamsweetdreams_dms.permissions (perm_id, perm_name, perm_description, perm_notes, enabled) VALUES 
- ('1', 'All', 'All permissions', 'Granted to role: HEAD ADMIN', 0)
+ ('1', 'All', 'All permissions', 'Granted to role: HEAD ADMIN', 0);
 INSERT INTO teamsweetdreams_dms.permissions (perm_id, perm_name, perm_description, perm_notes, enabled) VALUES  ('2', 'Alter', 'Grants the ability to alter tables', 'Granted to role: ADMIN', 0);
 INSERT INTO teamsweetdreams_dms.permissions (perm_id, perm_name, perm_description, perm_notes, enabled) VALUES ('3', 'Create', 'Grants the ability to create tables', 'Granted to role: ADMIN', 1);
 INSERT INTO teamsweetdreams_dms.permissions (perm_id, perm_name, perm_description, perm_notes, enabled) VALUES ('4', 'Drop', 'Grants the ability to drop tables', 'Granted to role: ADMIN, DELETER', 1);
@@ -83,22 +83,22 @@ INSERT INTO teamsweetdreams_dms.permissions (perm_id, perm_name, perm_descriptio
 
 -- Insert into statements for the 'ROLES' table:
 INSERT INTO teamsweetdreams_dms.roles (role_id, name, description, color_id, notes) VALUES 
- ('1', 'Head Admin', 'Gives all permissions to the user', 1, 'Used for the president of the company')
-INSERT INTO teamsweetdreams_dms.roles (role_id, name, description, color_id, notes) VALUES ('2', 'Admin', 'Gives the roles of creating, deleting, changing tables and can edit the roles of others', 2, 'Used for higher level personell ')
-INSERT INTO teamsweetdreams_dms.roles (role_id, name, description, color_id, notes) VALUES ('3', 'Viewer', 'Only allows the user to view data in and the colums of tables', 3, 'Used for personell who should only be able to view data')
-INSERT INTO teamsweetdreams_dms.roles (role_id, name, description, color_id, notes) VALUES ('4', 'Inserter', 'Only allows the user to insert data into tables', 4, 'Used for personell who should only be able to insert data')
-INSERT INTO teamsweetdreams_dms.roles (role_id, name, description, color_id, notes) VALUES ('5', 'Deleter', 'Only allows the user to delete data in tables', 5, 'Used for personell who should only be able to delete data')
-INSERT INTO teamsweetdreams_dms.roles (role_id, name, description, color_id, notes) VALUES ('6', 'Supervisor', 'Allows for the user to change the permissions of users', 6, 'Used for managerial employees')
-INSERT INTO teamsweetdreams_dms.roles (role_id, name, description, color_id, notes) VALUES ('7', 'Recruiter', 'Gives the user the ability to add new users to the workspace', 7, 'Used for recruiters')
-INSERT INTO teamsweetdreams_dms.roles (role_id, name, description, color_id, notes) VALUES ('8', 'Restricted', 'Does not allow ANY permissions', 8, 'Used to restrict users from the database')
-INSERT INTO teamsweetdreams_dms.roles (role_id, name, description, color_id, notes) VALUES ('9', 'God', 'Grants the God-like power to create and destroy the enteirey of a workspace', 10, 'Used for God-like users')
+ ('1', 'Head Admin', 'Gives all permissions to the user', 1, 'Used for the president of the company');
+INSERT INTO teamsweetdreams_dms.roles (role_id, name, description, color_id, notes) VALUES ('2', 'Admin', 'Gives the roles of creating, deleting, changing tables and can edit the roles of others', 2, 'Used for higher level personell ');
+INSERT INTO teamsweetdreams_dms.roles (role_id, name, description, color_id, notes) VALUES ('3', 'Viewer', 'Only allows the user to view data in and the colums of tables', 3, 'Used for personell who should only be able to view data');
+INSERT INTO teamsweetdreams_dms.roles (role_id, name, description, color_id, notes) VALUES ('4', 'Inserter', 'Only allows the user to insert data into tables', 4, 'Used for personell who should only be able to insert data');
+INSERT INTO teamsweetdreams_dms.roles (role_id, name, description, color_id, notes) VALUES ('5', 'Deleter', 'Only allows the user to delete data in tables', 5, 'Used for personell who should only be able to delete data');
+INSERT INTO teamsweetdreams_dms.roles (role_id, name, description, color_id, notes) VALUES ('6', 'Supervisor', 'Allows for the user to change the permissions of users', 6, 'Used for managerial employees');
+INSERT INTO teamsweetdreams_dms.roles (role_id, name, description, color_id, notes) VALUES ('7', 'Recruiter', 'Gives the user the ability to add new users to the workspace', 7, 'Used for recruiters');
+INSERT INTO teamsweetdreams_dms.roles (role_id, name, description, color_id, notes) VALUES ('8', 'Restricted', 'Does not allow ANY permissions', 8, 'Used to restrict users from the database');
+INSERT INTO teamsweetdreams_dms.roles (role_id, name, description, color_id, notes) VALUES ('9', 'God', 'Grants the God-like power to create and destroy the enteirey of a workspace', 10, 'Used for God-like users');
 INSERT INTO teamsweetdreams_dms.roles (role_id, name, description, color_id, notes) VALUES ('10', 'Temporary', 'Gives the user \'Viewer\' permissions for one day', 255, 'Used for users who should only see the data for a short time');
 
  
  
 -- Insert into statements for the 'USERS' table:
 INSERT INTO teamsweetdreams_dms.users (user_id, fname, lname, username, password, activity_id, role_id, date_joined) VALUES 
- ('1', 'Connor', 'Fleischman', 'waytofaded', 'Toothfairy', 5, 3, '2023-11-08 00:00:00')
+ ('1', 'Connor', 'Fleischman', 'waytofaded', 'Toothfairy', 5, 3, '2023-11-08 00:00:00');
 INSERT INTO teamsweetdreams_dms.users (user_id, fname, lname, username, password, activity_id, role_id, date_joined) VALUES ('2', 'Evan', 'Spillane', 'EvanSpillane', 'Password', 2, 4, '2023-11-08 00:00:00');
 INSERT INTO teamsweetdreams_dms.users (user_id, fname, lname, username, password, activity_id, role_id, date_joined) VALUES ('3', 'Lilli', 'Cartiera', 'LilliCartiera', 'Google123', 255, 7, '2023-11-08 00:00:00');
 INSERT INTO teamsweetdreams_dms.users (user_id, fname, lname, username, password, activity_id, role_id, date_joined) VALUES ('4', 'Abel', 'Scholl', 'AbelScholl', 'BehindU', 10, 10, '2023-11-08 00:00:00');
@@ -137,7 +137,7 @@ INSERT INTO teamsweetdreams_dms.Organizations (org_id, org_name, maxDiaries, cre
 
 -- Insert into statements for the 'ENTRYTYPES' table:
 INSERT INTO teamsweetdreams_dms.entrytypes (entryType_id, name, description, notes, color_id) VALUES 
- ('1', 'Required', 'Everyone is required to attend', NULL, 1)
+ ('1', 'Required', 'Everyone is required to attend', NULL, 1);
 INSERT INTO teamsweetdreams_dms.entrytypes (entryType_id, name, description, notes, color_id) VALUES ('2', 'High priority', 'Attendance is highly recommend but not required', NULL, 2);
 INSERT INTO teamsweetdreams_dms.entrytypes (entryType_id, name, description, notes, color_id) VALUES ('3', 'Priority', 'Attendance is recommended but not required', 'Use high/low priority for more pressing/ less important events', 3);
 INSERT INTO teamsweetdreams_dms.entrytypes (entryType_id, name, description, notes, color_id) VALUES ('4', 'Optional', 'Attendance is optional', NULL, 4);
@@ -247,23 +247,23 @@ VALUES(5, 7)
 INSERT INTO teamsweetdreams_dms.UserDiaries (user_id, diary_id) 
 VALUES (10, 34);
 INSERT INTO teamsweetdreams_dms.UserDiaries (user_id, diary_id) 
-VALUES (10, 34)(1, 1237);
+VALUES (1, 1237);
 INSERT INTO teamsweetdreams_dms.UserDiaries (user_id, diary_id) 
-VALUES (10, 34)(2, 2312);
+VALUES (2, 2312);
 INSERT INTO teamsweetdreams_dms.UserDiaries (user_id, diary_id) 
-VALUES (10, 34)(3, 2312);
+VALUES (3, 2312);
 INSERT INTO teamsweetdreams_dms.UserDiaries (user_id, diary_id) 
-VALUES (10, 34)(4, 2347);
+VALUES (4, 2347);
 INSERT INTO teamsweetdreams_dms.UserDiaries (user_id, diary_id) 
-VALUES (10, 34)(5, 2348);
+VALUES (5, 2348);
 INSERT INTO teamsweetdreams_dms.UserDiaries (user_id, diary_id) 
-VALUES (10, 34)(6, 65535);
+VALUES (6, 65535);
 INSERT INTO teamsweetdreams_dms.UserDiaries (user_id, diary_id) 
-VALUES (10, 34)(7, 65535);
+VALUES (7, 65535);
 INSERT INTO teamsweetdreams_dms.UserDiaries (user_id, diary_id) 
-VALUES (10, 34)(8, 34);
+VALUES (8, 34);
 INSERT INTO teamsweetdreams_dms.UserDiaries (user_id, diary_id) 
-VALUES (10, 34)(9, 32767)
+VALUES (9, 32767)
 ;
 
 -- Insert values into table UserPermissions
