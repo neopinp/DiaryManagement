@@ -28,7 +28,7 @@ INSERT INTO teamsweetdreams_dms.ActivityStatus(activity_id, name, description, l
 	VALUES (1, 'Online', 'User is Online', '2023-11-08 06:32:05', 4);
 INSERT INTO teamsweetdreams_dms.ActivityStatus(activity_id, name, description, last_assigned, color_id) 
 	VALUES (2, 'Offline', 'User is Offline', '9999-12-31 11:13:00', 255); -- maximum date
-INSERT INTO teamsweetdreams_dms.ActivityStatus(activity_id, name, description, last_assigned, color_id) 
+INSERT INTO teamsweetdreams_dms.ActivityStatus(activity_id, name, description, last_assigned, color_id)
 	VALUES (3, 'Idle', 'User is idle', '2010-02-28 21:04:00', 3);
 INSERT INTO teamsweetdreams_dms.ActivityStatus(activity_id, name, description, last_assigned, color_id) 
 	VALUES (4, 'Meeting', 'User is in a meeting', '2020-02-29 23:12:31', 4); -- leap year date
@@ -99,37 +99,37 @@ INSERT INTO teamsweetdreams_dms.roles (role_id, name, description, color_id, not
 -- Insert into statements for the 'USERS' table:
 INSERT INTO teamsweetdreams_dms.users (user_id, fname, lname, username, password, activity_id, role_id, date_joined) VALUES 
  ('1', 'Connor', 'Fleischman', 'waytofaded', 'Toothfairy', 5, 3, '2023-11-08 00:00:00')
-, INSERT INTO teamsweetdreams_dms.users (user_id, fname, lname, username, password, activity_id, role_id, date_joined) VALUES ('2', 'Evan', 'Spillane', 'EvanSpillane', 'Password', 2, 4, '2023-11-08 00:00:00');
-, INSERT INTO teamsweetdreams_dms.users (user_id, fname, lname, username, password, activity_id, role_id, date_joined) VALUES ('3', 'Lilli', 'Cartiera', 'LilliCartiera', 'Google123', 255, 7, '2023-11-08 00:00:00');
-, INSERT INTO teamsweetdreams_dms.users (user_id, fname, lname, username, password, activity_id, role_id, date_joined) VALUES ('4', 'Abel', 'Scholl', 'AbelScholl', 'BehindU', 10, 10, '2023-11-08 00:00:00');
-, INSERT INTO teamsweetdreams_dms.users (user_id, fname, lname, username, password, activity_id, role_id, date_joined) VALUES ('5', 'Neo', 'Pi', 'NeoPi', 'ABCDEFG123', 6, 1, '2023-11-08 00:00:00');
-, INSERT INTO teamsweetdreams_dms.users (user_id, fname, lname, username, password, activity_id, role_id, date_joined) VALUES ('6', 'Saul', 'Goodman', 'BetterCallSaul', 'LyrsAreUs', 1, 1, '2023-11-08 00:00:00');
-, INSERT INTO teamsweetdreams_dms.users (user_id, fname, lname, username, password, activity_id, role_id, date_joined) VALUES ('7', 'Anakin', 'Skywalker', 'theChosenOne', 'Jedi4Life', 1, 3, '2023-11-08 00:00:00');
-, INSERT INTO teamsweetdreams_dms.users (user_id, fname, lname, username, password, activity_id, role_id, date_joined) VALUES ('8', 'Neo', 'Anderson', 'MAtrixHakr', '123CantHakME', 20, 4, '2023-11-08 00:00:00');
-, INSERT INTO teamsweetdreams_dms.users (user_id, fname, lname, username, password, activity_id, role_id, date_joined) VALUES ('9', 'Jesus', 'Christ', 'SonofGod', 'Heaven', 2, 7, '2023-11-08 00:00:00');
-, INSERT INTO teamsweetdreams_dms.users (user_id, fname, lname, username, password, activity_id, role_id, date_joined) VALUES ('10', 'Finn', 'TheHuman', 'FinnTheHuman', 'ILoveJake', 1, 6, '2023-11-08 00:00:00');
+INSERT INTO teamsweetdreams_dms.users (user_id, fname, lname, username, password, activity_id, role_id, date_joined) VALUES ('2', 'Evan', 'Spillane', 'EvanSpillane', 'Password', 2, 4, '2023-11-08 00:00:00');
+INSERT INTO teamsweetdreams_dms.users (user_id, fname, lname, username, password, activity_id, role_id, date_joined) VALUES ('3', 'Lilli', 'Cartiera', 'LilliCartiera', 'Google123', 255, 7, '2023-11-08 00:00:00');
+INSERT INTO teamsweetdreams_dms.users (user_id, fname, lname, username, password, activity_id, role_id, date_joined) VALUES ('4', 'Abel', 'Scholl', 'AbelScholl', 'BehindU', 10, 10, '2023-11-08 00:00:00');
+INSERT INTO teamsweetdreams_dms.users (user_id, fname, lname, username, password, activity_id, role_id, date_joined) VALUES ('5', 'Neo', 'Pi', 'NeoPi', 'ABCDEFG123', 6, 1, '2023-11-08 00:00:00');
+INSERT INTO teamsweetdreams_dms.users (user_id, fname, lname, username, password, activity_id, role_id, date_joined) VALUES ('6', 'Saul', 'Goodman', 'BetterCallSaul', 'LyrsAreUs', 1, 1, '2023-11-08 00:00:00');
+INSERT INTO teamsweetdreams_dms.users (user_id, fname, lname, username, password, activity_id, role_id, date_joined) VALUES ('7', 'Anakin', 'Skywalker', 'theChosenOne', 'Jedi4Life', 1, 3, '2023-11-08 00:00:00');
+INSERT INTO teamsweetdreams_dms.users (user_id, fname, lname, username, password, activity_id, role_id, date_joined) VALUES ('8', 'Neo', 'Anderson', 'MAtrixHakr', '123CantHakME', 20, 4, '2023-11-08 00:00:00');
+INSERT INTO teamsweetdreams_dms.users (user_id, fname, lname, username, password, activity_id, role_id, date_joined) VALUES ('9', 'Jesus', 'Christ', 'SonofGod', 'Heaven', 2, 7, '2023-11-08 00:00:00');
+INSERT INTO teamsweetdreams_dms.users (user_id, fname, lname, username, password, activity_id, role_id, date_joined) VALUES ('10', 'Finn', 'TheHuman', 'FinnTheHuman', 'ILoveJake', 1, 6, '2023-11-08 00:00:00');
 
 -- SET FOREIGN_KEY_CHECKS=0;
 
 INSERT INTO teamsweetdreams_dms.Organizations (org_id, org_name, maxDiaries, creator_id, date_created) 
 	VALUES (1, 'Public Relations', 65535, 1, '2023-11-08 06:32:05');
-, INSERT INTO teamsweetdreams_dms.Organizations (org_id, org_name, maxDiaries, creator_id, date_created) 
+INSERT INTO teamsweetdreams_dms.Organizations (org_id, org_name, maxDiaries, creator_id, date_created) 
 	VALUES (2, 'Marketing', 65535, 2, '2023-11-08 10:30:59');
-, INSERT INTO teamsweetdreams_dms.Organizations (org_id, org_name, maxDiaries, creator_id, date_created) 
+INSERT INTO teamsweetdreams_dms.Organizations (org_id, org_name, maxDiaries, creator_id, date_created) 
 	VALUES (3, 'Advisors', 65533, 1, '0000-01-01 00:00:00'); -- minimum datetime
-, INSERT INTO teamsweetdreams_dms.Organizations (org_id, org_name, maxDiaries, creator_id, date_created) 
+INSERT INTO teamsweetdreams_dms.Organizations (org_id, org_name, maxDiaries, creator_id, date_created) 
 	VALUES (4, 'CEO', 65535, 1, '2023-11-08 10:30:59');
-, INSERT INTO teamsweetdreams_dms.Organizations (org_id, org_name, maxDiaries, creator_id, date_created) 
+INSERT INTO teamsweetdreams_dms.Organizations (org_id, org_name, maxDiaries, creator_id, date_created) 
 	VALUES (5, 'Administrators', 0, 1, '2022-11-25 10:30:59');
-, INSERT INTO teamsweetdreams_dms.Organizations (org_id, org_name, maxDiaries, creator_id, date_created) 
+INSERT INTO teamsweetdreams_dms.Organizations (org_id, org_name, maxDiaries, creator_id, date_created) 
 	VALUES (6, 'Human Resources', 15563, 1, '2014-03-08 10:30:59');
-, INSERT INTO teamsweetdreams_dms.Organizations (org_id, org_name, maxDiaries, creator_id, date_created) 
+INSERT INTO teamsweetdreams_dms.Organizations (org_id, org_name, maxDiaries, creator_id, date_created) 
 	VALUES (7, 'Information Technology', 65535, 1, '2023-11-08 10:30:59');
-, INSERT INTO teamsweetdreams_dms.Organizations (org_id, org_name, maxDiaries, creator_id, date_created) 
+INSERT INTO teamsweetdreams_dms.Organizations (org_id, org_name, maxDiaries, creator_id, date_created) 
 	VALUES (8, 'Finance', 65535, 1, '2023-11-08 10:30:59');
-, INSERT INTO teamsweetdreams_dms.Organizations (org_id, org_name, maxDiaries, creator_id, date_created) 
+INSERT INTO teamsweetdreams_dms.Organizations (org_id, org_name, maxDiaries, creator_id, date_created) 
 	VALUES (9, 'Sales', 65535, 1, '2023-11-08 10:30:59');
-, INSERT INTO teamsweetdreams_dms.Organizations (org_id, org_name, maxDiaries, creator_id, date_created) 
+INSERT INTO teamsweetdreams_dms.Organizations (org_id, org_name, maxDiaries, creator_id, date_created) 
 	VALUES (255, 'Operations Management Executive Special Team', 65535, 1, '9999-12-31 23:59:59') -- maximum datetime, varchar, maxDiaries
  ;
 
@@ -138,15 +138,15 @@ INSERT INTO teamsweetdreams_dms.Organizations (org_id, org_name, maxDiaries, cre
 -- Insert into statements for the 'ENTRYTYPES' table:
 INSERT INTO teamsweetdreams_dms.entrytypes (entryType_id, name, description, notes, color_id) VALUES 
  ('1', 'Required', 'Everyone is required to attend', NULL, 1)
-, INSERT INTO teamsweetdreams_dms.entrytypes (entryType_id, name, description, notes, color_id) VALUES ('2', 'High priority', 'Attendance is highly recommend but not required', NULL, 2);
-, INSERT INTO teamsweetdreams_dms.entrytypes (entryType_id, name, description, notes, color_id) VALUES ('3', 'Priority', 'Attendance is recommended but not required', 'Use high/low priority for more pressing/ less important events', 3);
-, INSERT INTO teamsweetdreams_dms.entrytypes (entryType_id, name, description, notes, color_id) VALUES ('4', 'Optional', 'Attendance is optional', NULL, 4);
-, INSERT INTO teamsweetdreams_dms.entrytypes (entryType_id, name, description, notes, color_id) VALUES ('5', 'Special Event', 'Used for the least important entires', NULL, 5);
-, INSERT INTO teamsweetdreams_dms.entrytypes (entryType_id, name, description, notes, color_id) VALUES ('6', 'Away', 'Denote predetermined times away from the office', 'This type will not notify the user', 3);
-, INSERT INTO teamsweetdreams_dms.entrytypes (entryType_id, name, description, notes, color_id) VALUES ('7', 'Note', NULL, 'Leave a note to your team', 4);
-, INSERT INTO teamsweetdreams_dms.entrytypes (entryType_id, name, description, notes, color_id) VALUES ('8', 'Put-off', 'Used for entries whose event will be put-off until later', NULL, 5);
-, INSERT INTO teamsweetdreams_dms.entrytypes (entryType_id, name, description, notes, color_id) VALUES ('9', 'Heads-up', 'Used for reminding users about the entry ', NULL, 8);
-, INSERT INTO teamsweetdreams_dms.entrytypes (entryType_id, name, description, notes, color_id) VALUES ('10', 'Delete later', 'Used for entries which will be deleted later', NULL, 6);
+INSERT INTO teamsweetdreams_dms.entrytypes (entryType_id, name, description, notes, color_id) VALUES ('2', 'High priority', 'Attendance is highly recommend but not required', NULL, 2);
+INSERT INTO teamsweetdreams_dms.entrytypes (entryType_id, name, description, notes, color_id) VALUES ('3', 'Priority', 'Attendance is recommended but not required', 'Use high/low priority for more pressing/ less important events', 3);
+INSERT INTO teamsweetdreams_dms.entrytypes (entryType_id, name, description, notes, color_id) VALUES ('4', 'Optional', 'Attendance is optional', NULL, 4);
+INSERT INTO teamsweetdreams_dms.entrytypes (entryType_id, name, description, notes, color_id) VALUES ('5', 'Special Event', 'Used for the least important entires', NULL, 5);
+INSERT INTO teamsweetdreams_dms.entrytypes (entryType_id, name, description, notes, color_id) VALUES ('6', 'Away', 'Denote predetermined times away from the office', 'This type will not notify the user', 3);
+INSERT INTO teamsweetdreams_dms.entrytypes (entryType_id, name, description, notes, color_id) VALUES ('7', 'Note', NULL, 'Leave a note to your team', 4);
+INSERT INTO teamsweetdreams_dms.entrytypes (entryType_id, name, description, notes, color_id) VALUES ('8', 'Put-off', 'Used for entries whose event will be put-off until later', NULL, 5);
+INSERT INTO teamsweetdreams_dms.entrytypes (entryType_id, name, description, notes, color_id) VALUES ('9', 'Heads-up', 'Used for reminding users about the entry ', NULL, 8);
+INSERT INTO teamsweetdreams_dms.entrytypes (entryType_id, name, description, notes, color_id) VALUES ('10', 'Delete later', 'Used for entries which will be deleted later', NULL, 6);
 
 
 -- Insert into statements for the 'DIARIES' table:
