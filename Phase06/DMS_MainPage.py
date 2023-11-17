@@ -1,5 +1,7 @@
 ##Team Sweet Dreams Diary Management System
-##11/17/23
+##created on: 11/15/23
+##last updated: 11/17/2023
+
 ##The following code defines the main screen for the Diary Management System.
 ##If a user is logged in successfully, this screen will appear.
 
