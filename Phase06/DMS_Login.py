@@ -1,5 +1,7 @@
 ##Team Sweet Dreams Diary Management System
-##11/14/2023
+##Created on: 11/14/2023
+##Last Updated: 11/14/2023
+
 ##The following code defines the Login page of the Diary Management System
 ##If a user is not logged in, this screen will appear.
 
