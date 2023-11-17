@@ -1,5 +1,6 @@
 ##Team Sweet Dreams Diary Management System
-##11/14/2023
+##created on: 11/14/23
+##last updated: 11/17/2023
 
 ##The following code will open the DMS app when run, starting at the login page.
 
@@ -11,4 +12,4 @@ from RootWindow import RootWindow
 if __name__ == "__main__":
     root = RootWindow()
     DMS_Login.Login(root)
-    root.root.mainloop()
+    root.run()
