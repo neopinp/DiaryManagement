@@ -1,5 +1,7 @@
 ##Team Sweet Dreams Diary Management System
-##11/14/2023
+##created on: 11/14/2023
+##last edited: 11/17/2023
+
 ##The following code defines the class RootWindow
 ##represents the root window for the Diary Management System tkinter application
 
@@ -7,13 +9,13 @@ import tkinter as tk
 
 
 class RootWindow():
-    def __init__(self):
+    def __init__(self, title="Diary Managemeny System"):
         self.root = tk.Tk() ##main window
         self.screen_width = self.root.winfo_screenwidth()
         self.screen_height = self.root.winfo_screenheight()-100
         self.root.resizable(width=True, height=True)
         self.root.geometry(f'{self.screen_width}x{self.screen_height}')
-        self.root.title("Diary Managemeny System")
+        self.root.title(title)
         self.details = {
             'currentPage':None, ##keep track of what page is being shown
             'currentWidgets': self.__getAllWidgets() ##keep track of all widgets currently on the page
@@ -50,6 +52,9 @@ class RootWindow():
                 i.destroy()
         else:
             self.root.destroy()
+
+    def run(self):
+        self.root.mainloop()
 
 
 
