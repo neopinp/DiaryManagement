@@ -59,13 +59,6 @@ def banner(root):
     
     return mainFrame, aW, aH
 
-def refreshPage():
-    pass
-
-def closeWindow(root, master=None):
-    root.removeWidgets(master)
-
-
 def openSettings(root):
     ##opens the Settings window
     ##that allows a user to view their user information
@@ -84,6 +77,7 @@ def openSettings(root):
     ##so master of .removeWidgets(master) is None, which will close the whole window.
     saveButton=tk.Button(frame1, text='Save Changes', command=lambda:Save(settingsWindow))
     backButton=tk.Button(frame1, text='<- Back', command=lambda:closeWindow(settingsWindow))
+    
 
     ##Add the contents to the window
     frame1.pack()
@@ -91,10 +85,17 @@ def openSettings(root):
     nameEntry.grid(column=2, row=2)
     saveButton.grid(column=3, row=3)
     backButton.grid(column=1, row=1)
+    cancelButton.grid(column=2, row=2, padx=5, pady=10, sticky='nsew')
 
     settingsWindow.run()
 
 
+def getImage(filename, w, h):
+    ##returns an image to display, resized.
+    img = Image.open(filename) # load image
+    resized_image = img.resize((w,h), Image.Resampling.LANCZOS) # resize, remove structural padding
+    new_image = ImageTk.PhotoImage(resized_image)# convert to photoimage
+    return new_image
 
 
 def Save(root, master=None):
@@ -104,12 +105,10 @@ def Save(root, master=None):
     root.removeWidgets(master)
 
 
-
-
-def EditOrg(id=None):
+def EditOrg(org_name=None):
     ##opens a new window that allows a user
     ##to edit an organization's information
-    ##if id=None, it prompts to create a new organization.
+    ##if org_name=None, it prompts to create a new organization.
 
     ##create the popup
     editWindow = RootWindow(title="Edit Organization")
@@ -120,9 +119,12 @@ def EditOrg(id=None):
     nameLabel=tk.Label(frame1, text="Organization name:")
     nameEntry=tk.Entry(frame1)
     
-    ##only passing the window to Save,
-    ##so master of .removeWidgets(master) is None, which will close the whole window.
     saveButton=tk.Button(frame1, text='Save Changes', command=lambda:Save(editWindow))
+
+    if org_name:
+        if nameEntry.get():
+            nameEntry.delete(0, tk.END)
+        nameEntry.insert(0, org_name)
 
     ##Add the contents to the window
     frame1.pack()
@@ -132,18 +134,24 @@ def EditOrg(id=None):
     
     editWindow.run() ##open the window
 
-def populateOptionsFrame(root, frame, calendarFrame, entryFrame):
+
+
+def populateOptionsFrame(root, framesList):
     ##populates the options frame with a way to choose an organization and show its associated diaries
-    
+
+    opf = framesList[0]
     ##Add Frames
-    headingFrame = tk.Frame(frame, bg="Purple")
+    headingFrame = tk.Frame(opf, bg="Purple")
     headingFrame.pack(fill='both')
-    comboFrame=tk.Frame(frame, bg="Purple")
+    comboFrame=tk.Frame(opf, bg="Purple")
     comboFrame.pack(fill='both')
-    headingFrame2 = tk.Frame(frame, bg="Purple")
+    headingFrame2 = tk.Frame(opf, bg="Purple")
     headingFrame2.pack(fill='both')
-    diaryListFrame = tk.Frame(frame, bg="Purple")
+    diaryListFrame = tk.Frame(opf, bg="Purple")
     diaryListFrame.pack(fill='both')
+
+    if diaryListFrame not in framesList:
+        framesList.append(diaryListFrame)
 
     ##Add heading labels
     heading=tk.Label(headingFrame, text="Organization", font=('Helvetica', 20), bg="Purple", fg="Light Blue")
@@ -151,12 +159,7 @@ def populateOptionsFrame(root, frame, calendarFrame, entryFrame):
     heading2=tk.Label(headingFrame2, text="Diaries", font=('Helvetica', 18), bg="Purple", fg="Light Blue")
     heading2.pack(padx=10, pady=10)
 
-    root.cursor.execute(f"""SELECT OM.org_id, O.org_name FROM Users U
-INNER JOIN organizationmembers OM ON OM.user_id = U.user_id
-INNER JOIN Organizations O ON O.org_id = OM.org_id
-WHERE U.user_id = {root.currentUser_id}
-ORDER BY U.user_id;""")
-    userOrgData = root.cursor.fetchall()
+    userOrgData = root.getUserOrgData()
 
     orgs=[]
     for item in userOrgData:
@@ -168,75 +171,173 @@ ORDER BY U.user_id;""")
     orgsCombo.pack(side='left', padx=10)
 
         
-    ##get all diaries a user has access to and the organization it is associated with(title and id)
-    root.cursor.execute(f"""SELECT title, O.org_name FROM Users U
-JOIN UserDiaries UD ON UD.user_id = U.user_id
-JOIN Diaries D ON D.diary_id = UD.diary_id
-JOIN Organizations O ON O.org_id = D.diaryOrg_id
-WHERE U.user_id={root.currentUser_id}
-ORDER BY D.diary_id;""")
-    
-    userDiaryData=root.cursor.fetchall()
+    ##get all diaries a user has access to and the organization it is associated with(title and id)   
+    userDiaryData=root.getUserDiaryData()
 
     showDiariesButton = tk.Button(comboFrame, text='Show Diaries', font=('Helvetica', 11),
-                                  bg="Red", command=lambda:showOrgDiaries(root, diaryListFrame, orgsCombo.get(), calendarFrame, entryFrame, userDiaryData))
+                                  bg="Red", command=lambda:showOrgDiaries(root, framesList, orgsCombo.get()))
     editButton = tk.Button(comboFrame, text='Edit', font=('Helvetica', 11),
-                                   bg="Pink", command=lambda:EditOrg()) #will likely pass in the organization id.
+                                   bg="Pink", command=lambda:EditOrg(orgsCombo.get()))
+    #editButton.configure(command=lambda editButton=editButton:EditOrg())
     
     showDiariesButton.pack(side='left', padx=5)
     editButton.pack(side='left', padx=5)
 
-    showOrgDiaries(root, diaryListFrame, orgsCombo.get(), calendarFrame, entryFrame, userDiaryData)
+    showOrgDiaries(root, framesList, orgsCombo.get())
 
-    createDiary(root, calendarFrame, entryFrame, orgsCombo.get())
 
-def showOrgDiaries(root, diaryListFrame, currentOrg, calendarFrame, entryFrame, userDiaryData):
-    root.removeWidgets(diaryListFrame)
 
-    hasDiaries = False
+
+
+
+def showOrgDiaries(root, framesList, currentOrg, returnTitle=None):
+    dlf = framesList[5]
+    root.removeWidgets(dlf)
     
-    ##Show a button for wach diary associated with an organization
-    for item in userDiaryData:
-        if item[-1]==currentOrg: ##if the organization name is the same as the one in the combobox
-            diaryButton = tk.Button(diaryListFrame, text=item[0], font=('Helvetica', 11),
-                                    bg="Pink", width=8, command=lambda:createDiary(root, calendarFrame, entryFrame, currentOrg))
+    ##Show a button for each diary associated with an organization
+    data=root.getUserDiaryData()
+    for item in data:
+        if item[1]==currentOrg: ##if the organization name is the same as the one in the combobox
+            diaryButton = tk.Button(dlf, text=item[0], font=('Helvetica', 11),
+                    bg="Pink", width=20)
+            diaryButton.config(command=lambda diaryTitle=item[0], diaryButton = diaryButton: createDiary(root, framesList, currentOrg, diaryTitle=diaryTitle))
             diaryButton.pack(padx=5, pady=10)
-            hasDiaries = True
-    if not hasDiaries:
-        ##when an organization is created, one diary is also created.
-        pass
+            
+    ##if permission allows:
+    addDiaryButton = tk.Button(dlf, text="Add Diary", font=('Helvetica', 11),
+        bg="Pink", width=20, command=lambda:editDiary(root, currentOrg, framesList)) ##pass with no third parameter prompts to add new
+    addDiaryButton.pack(padx=5, pady=10)
+
+    createDiary(root, framesList, currentOrg, diaryTitle=returnTitle)
+
     
 
-def createDiary(root, wholeFrame, entryFrame, currentOrg):
-    ##this will be cleaned up in time.
-    ##creates a calendar that tells you what day it is.
-    ##functional but incomplete, will update soon.
-    print(currentOrg)
 
-    ##Retrieve a specified user's diaries and all of their entries
-    root.cursor.execute(f"""SELECT D.title, O.org_name, E.* FROM Diaries D
-JOIN Entries E ON E.entryDiary_id=D.diary_id
-JOIN UserDiaries UD ON UD.diary_id = D.diary_id
-JOIN Organizations O ON O.org_id = D.diaryOrg_id
-WHERE UD.user_id={root.currentUser_id} AND O.org_name="{currentOrg}"
-ORDER BY D.title;""")
+def saveDiary(root, window, frame, title, subject, currentOrg, framesList, action, oldTitle=None):
+    if not title:
+        errorLabel = tk.Label(frame, text="Please enter a title.")
+        errorLabel.grid(column=2, row=4, padx=10, pady=15)
+        return
+    now = datetime.datetime.now().strftime('%y-%m-%d %H:%M:%S')
 
-    diaryEntryData = root.cursor.fetchall()
+    if action == 'new':
+        try:
+            root.cursor.execute(f"SELECT org_id FROM Organizations WHERE org_name = '{currentOrg}'")
+            org_id = root.cursor.fetchall()[0]
+
+            root.cursor.execute(f"""INSERT INTO Diaries (title, date_created, last_updated, owner_id, subject, diaryOrg_id)
+            VALUES("{title}", "{now}", "{now}", {root.currentUser_id}, "{subject}", {org_id});""")
+            root.connection.commit()
+            
+            root.cursor.execute(f"""INSERT INTO UserDiaries (user_id, diary_id) VALUE ({root.currentUser_id}, (SELECT MAX(LAST_INSERT_ID()) FROM Diaries));""")
+            root.connection.commit()
+        except Exception as e:
+            print(e)
+
+    elif action == 'edit':
+        try:
+            root.cursor.execute(f"SELECT diary_id FROM Diaries WHERE title='{oldTitle}'")
+            diary_id = root.cursor.fetchall()[0]
+            root.cursor.execute(f"""UPDATE Diaries
+SET title="{title}", last_updated="{now}", subject="{subject}" WHERE diary_id='{int(diary_id)}';""")
+            root.connection.commit()
+        except Exception as e:
+            print(e)
+
+    window.removeWidgets(master=None) ##close the window
+    showOrgDiaries(root, framesList, currentOrg, title)
+
+
+def editDiary(root, currentOrg, framesList, diary=None):
+    ##opens a new window that allows a user
+    ##to edit a diary's information
+    ##if diary=None, it prompts to create a new diary.
+
+    ##create the popup
+    window = RootWindow(title="Edit Diary")
+    window.root.geometry("800x200")
     
+    ##define the contents
+    frame1 = tk.Frame(window.root, bg="Blue")
+    titleLabel=tk.Label(frame1, text="Diary title:")
+    titleEntry=tk.Entry(frame1)
+    subjectLabel=tk.Label(frame1, text="Subject:")
+    subjectEntry=tk.Entry(frame1, width=100)
+    cancelButton=tk.Button(frame1, text='Cancel', command=lambda:window.root.destroy())
+    
+    ##only passing the window to Save,
+    ##so master of .removeWidgets(master) is None, which will close the whole window.
+    saveButton=tk.Button(frame1, text='Save')
+    saveButton.config(command=lambda cO=currentOrg,
+                    saveButton=saveButton:saveDiary(root, window, frame1, titleEntry.get(), subjectEntry.get(), cO, framesList))
+
+    
+    
+    if diary:
+        root.cursor.execute(f"SELECT diary_id, subject FROM Diaries WHERE title='{diary}'")
+        data = root.cursor.fetchall()[0]
+        diary_id, subject = data[0], data[1]
+        
+        if titleEntry.get():
+            titleEntry.delete(0, tk.END)
+        titleEntry.insert(0, diary)
+        if subjectEntry.get():
+            subjectEntry.delete(0, tk.END)
+        subjectEntry.insert(0, subject)
+
+        saveButton.config(command=lambda cO=currentOrg,
+            saveButton=saveButton:saveDiary(root, window, frame1, titleEntry.get(),
+                                            subjectEntry.get(), cO, framesList, action='edit', oldTitle=diary))
+        
+    else:
+        saveButton.config(command=lambda cO=currentOrg,
+            saveButton=saveButton:saveDiary(root, window, frame1, titleEntry.get(), subjectEntry.get(),
+                                            cO, framesList, action='new'))
+
+    ##Add the contents to the window
+    frame1.pack(fill='both')
+    titleLabel.grid(column=1, row=1, padx=10, pady=10, sticky='nsew')
+    titleEntry.grid(column=2, row=1, padx=10, pady=10, sticky='nsew')
+    subjectLabel.grid(column=1, row=2, padx=10, pady=10, sticky='nsew')
+    subjectEntry.grid(column=2, row=2, padx=10, pady=10, sticky='nsew')
+    cancelButton.grid(column=3, row=3, padx=5, pady=10, sticky='nsew')
+    saveButton.grid(column=4, row=3, padx=5, pady=10, sticky='nsew')
+
+
+    titleEntry.focus()
+    
+    window.run() ##open the window
+
+
+def createDiary(root, framesList, currentOrg, diaryTitle=None):
+
+    cdf = framesList[1]
+    
+    ##this function populates the middle calendar frame.
+    ##with the diary name and a functional calendar.
+
+    ##Retrieve a specified user's diaries
+    root.cursor.execute(f"SELECT title, org_name FROM diaryinfopgvw WHERE user_id = '{root.currentUser_id}'")
+    diaries = root.cursor.fetchall()
+        
     ##clear the screen
-    root.removeWidgets(wholeFrame)
+    root.removeWidgets(cdf)
 
     ##create title headers
-    diaryTitle=diaryEntryData[0][0]
-    
-    diaryTitle=tk.Label(wholeFrame, text=diaryTitle, font=("Helvetica", 20))
-    diaryTitle.pack(side='top', pady=20)
+    if diaryTitle == None: ##if no title is given, choose the first in the list to display.
+        for item in diaries:
+            if item[1]==currentOrg:
+                diaryTitle = item[0]
+                break
 
-    monthYearFrame = tk.Frame(wholeFrame)
+    diaryLabel=tk.Label(cdf, text=diaryTitle, font=("Helvetica", 20))
+    diaryLabel.pack(side='top', pady=20)
+
+    monthYearFrame = tk.Frame(cdf)
     monthYearFrame.pack(side='top')
 
     ##create the calendar
-    calendarFrame=tk.Frame(wholeFrame) ##frame for the actual calendar
+    calendarFrame=tk.Frame(cdf) ##frame for the actual calendar
     calendarFrame.pack(side='top', padx=20)
     
     ##initialize important veriables
@@ -262,18 +363,27 @@ ORDER BY D.title;""")
     yearsCombo.pack(side='left', pady=10)
 
     showCalendarButton = tk.Button(monthYearFrame, text="Show Calendar",
-            command=lambda:showCalendar(root, calendarFrame, entryFrame, months.index(monthsCombo.get())+1,
-                                        int(yearsCombo.get()), today, diaryEntryData))
+                                   command=lambda:showCalendar(root, calendarFrame, framesList,
+                                    months.index(monthsCombo.get())+1,int(yearsCombo.get()), today, diaryTitle))
     showCalendarButton.pack(side='left', padx=5)
 
-    showCalendar(root, calendarFrame, entryFrame, months.index(monthsCombo.get())+1, int(yearsCombo.get()), today, diaryEntryData)
+    editDiaryButton = tk.Button(monthYearFrame, text="Edit Diary",
+                                command=lambda:editDiary(root, currentOrg, framesList, diary=diaryTitle))
+    editDiaryButton.pack(side='left')
 
-def showCalendar(root, calendarFrame, entryFrame, month, year, today, diaryEntryData):
+    showCalendar(root, calendarFrame, framesList, months.index(monthsCombo.get())+1, int(yearsCombo.get()), today, diaryTitle)
+
+    iterateEntries(root, framesList[4], diaryTitle)
+
+
+def showCalendar(root, calendarFrame, framesList, month, year, today, diaryTitle):
+    cdf=framesList[1]
+    
+    
     ##clear calendar
     root.removeWidgets(calendarFrame)
 
-    command= iterateEntries(root, entryFrame, diaryEntryData)
-
+    command=iterateEntries(root, framesList[4], diaryTitle)
     weekdays=[]
     ##have to pull out sunday and do it separately because it absolutely refuses all attempts to be first in the iteration
     weekdays.append(calendar.day_name[-1:][0])
@@ -301,26 +411,57 @@ def showCalendar(root, calendarFrame, entryFrame, month, year, today, diaryEntry
                     if dayNum==today.day and today.month==month and today.year==year: ##if it is today's date
                         dayButton = tk.Button(calendarFrame,text=dayNum, width=9, height=5, bg="Pink") ##indicate in pink
                     else:
-                        dayButton = tk.Button(calendarFrame,text=dayNum, width=9, height=5) ##otherwise, no indication
+                        dayButton = tk.Button(calendarFrame, text=dayNum, width=9, height=5) ##otherwise, no indication
                     dayButton.grid(column=day, row=week+1, sticky='nsew')
                     dayNum+=1
 
-def editEntry(window, frame):
-    window.removeWidgets(master=frame) ##remove all contents from the frame
-    nameLabel=tk.Label(frame, text="Title:")
-    nameEntry=tk.Entry(frame)
 
-    ##only passing the window to Save,
-    ##so master of .removeWidgets(master) is None, which will close the whole window.
-    saveButton=tk.Button(frame, text='Save Changes', command=lambda:Save(window))
+def iterateEntries(root, entryFrame, diaryTitle):
 
-    ##Add the contents to the window
-    frame.pack()
-    nameLabel.grid(column=1, row=1)
-    nameEntry.grid(column=2, row=1)
-    saveButton.grid(column=3, row=2)
+    def x(entryFrame, title, color):
+        lis=entryFrame.winfo_children()
+        for i in lis:
+            if isinstance(i, Button):
+                if i['text']==title:
+                    style = Style().configure(f"{role[1]}.TButton",
+                                              foreground=f"#{color}")##color is the role color
+                    i['style'] = f"{role[1]}.TButton"
+
+    #reset the frame                
+    root.removeWidgets(entryFrame)
+
+    root.cursor.execute(f"""SELECT entry_title, start_time, priority, entryOwner_id
+FROM EntryInfoPgVW WHERE diary_title = '{diaryTitle}'""")
+    entries = root.cursor.fetchall()
+
+    role = root.getCurrentUserRoleDetails()
+    root.cursor.execute(f"""SELECT hexcode FROM Colors WHERE color_id={role[-1]}""")
+    color = root.cursor.fetchall()[0][0]
     
-    window.run() ##open the window
+    for item in entries:
+        startTime=''
+        if item[1]:
+            startTime=datetime.datetime.strftime(item[1], "%m/%d/%y %I:%M %p")
+        txt=f"{item[0]}\n{startTime}"
+        img=getPriorityImage(priority=item[2])
+        entryButton = Button(entryFrame, text=txt, width=60, image=img, compound=tk.LEFT,
+                             command=lambda:showEntryDetails(entryFrame, entryId=None))
+        entryButton.pack(fill='both', padx=5, pady=5)
+        entryButton.image=img
+        if item[3] == root.currentUser_id:
+            x(entryFrame, txt, color)
+
+
+        
+def getPriorityImage(priority=None):
+    ##returns an image to display next to an entry based on the entry's priority
+    if priority:
+        img = Image.open("exclamation.png") # load image
+        resized_image = img.resize((25,25), Image.Resampling.LANCZOS) # resize, remove structural padding
+        new_image = ImageTk.PhotoImage(resized_image)# convert to photoimage
+        return new_image   
+
+
 
 
 def showEntryDetails(entryFrame, entryId=None):
@@ -348,29 +489,26 @@ def showEntryDetails(entryFrame, entryId=None):
     
     window.run() ##open the window
 
-def iterateEntries(root, entryFrame, diaryEntryData):
-    for i in range(1,5):
-        startTime=datetime.datetime.strftime(datetime.datetime.now(), "%y/%m/%d %I:%M %p")
-        txt=f"Entry {i}\n{startTime}"
-        img= getPriorityImage(priority=1)
-        entryButton = Button(entryFrame, text=txt, width=60, image=img, compound=tk.LEFT, command=lambda:showEntryDetails(frame, entryId=None))
-        entryButton.pack(fill='both', padx=5, pady=5)
-        entryButton.image=img
-        
-def getPriorityImage(priority=None):
-    ##returns an image to display next to an entry based on the entry's priority
-    if priority:
-        img = Image.open("exclamation.png") # load image
-        resized_image = img.resize((25,25), Image.Resampling.LANCZOS) # resize, remove structural padding
-        new_image = ImageTk.PhotoImage(resized_image)# convert to photoimage
-        return new_image
 
-def getImage(filename, w, h):
-    ##returns an image to display, resized.
-    img = Image.open(filename) # load image
-    resized_image = img.resize((w,h), Image.Resampling.LANCZOS) # resize, remove structural padding
-    new_image = ImageTk.PhotoImage(resized_image)# convert to photoimage
-    return new_image
+
+
+def editEntry(window, frame):
+    window.removeWidgets(master=frame) ##remove all contents from the frame
+    nameLabel=tk.Label(frame, text="Title:")
+    nameEntry=tk.Entry(frame)
+
+    ##only passing the window to Save,
+    ##so master of .removeWidgets(master) is None, which will close the whole window.
+    saveButton=tk.Button(frame, text='Save Changes', command=lambda:Save(window))
+
+    ##Add the contents to the window
+    frame.pack()
+    nameLabel.grid(column=1, row=1)
+    nameEntry.grid(column=2, row=1)
+    saveButton.grid(column=3, row=2)
+    
+    window.run() ##open the window
+
 
 
 def MainPage(root):
@@ -380,42 +518,26 @@ def MainPage(root):
 
     availableSpace, aW, aH = banner(root) ## display the banner and borders of the main page
 
-    ##this frame is the container for the 
     optionsFrameWidth, optionsFrameHeight = (int(aW*0.2), aH)
     calendarFrameWidth, calendarFrameHeight = (int(aW*0.6), aH)
     entryFrameWidth, entryFrameHeight=(int(aW*0.2), aH)
 
+    ##main page frames
     optionsFrame = tk.Frame(availableSpace, bg="Purple", width=optionsFrameWidth, height=optionsFrameHeight)
     calendarFrame = tk.Frame(availableSpace, bg="Purple", width=calendarFrameWidth, height=calendarFrameHeight)
-    entryFrame=tk.Frame(availableSpace, bg="Purple", width=entryFrameWidth, height=entryFrameHeight)
-
+    searchEntryFrame = tk.Frame(availableSpace, bg="Purple", width=entryFrameWidth, height=entryFrameHeight)
+    searchFrame=tk.Frame(searchEntryFrame, width=entryFrameWidth, height=100)
+    entryFrame=tk.Frame(searchEntryFrame, bg="Purple", width=entryFrameWidth, height=entryFrameHeight)
+    
     availableSpace.pack(fill='both')
     
     optionsFrame.grid(column=1, row=1, sticky='nsew')
     calendarFrame.grid(column=2, row=1, sticky='nsew')
-    entryFrame.grid(column=3, row=1, sticky='nsew')
+    searchEntryFrame.grid(column=3, row=1, sticky='nsew')
+    searchFrame.grid(column=1, row=1, sticky='nsew')
+    entryFrame.grid(column=1, row=2, sticky='nsew')
 
-    
-    populateOptionsFrame(root, optionsFrame, calendarFrame, entryFrame)
+    framesList = [optionsFrame, calendarFrame, searchEntryFrame, searchFrame, entryFrame]
 
-    ##Image Test
-    img = getPriorityImage()
-    
-    searchFrame=tk.Frame(entryFrame, width=entryFrameWidth, height=100)
-    searchFrame.pack(fill='both')
+    populateOptionsFrame(root, framesList)
 
-    label = tk.Label(searchFrame, image = img) #display the image
-    label.image = img ##create a reference to the object so tkinter does not make it show up transparent
-    label.pack()
-
-    ##it is possible to grab index of specific widget (button) and reference it.
-    lis=entryFrame.winfo_children()
-    for i in lis:
-        if isinstance(i, Button):
-            if entryFrame.winfo_children().index(i)+1==3:
-                style = Style().configure("Blue.TButton", foreground="Blue")
-                i['style'] = "Blue.TButton"
-            print(i['text'])###if we know title, we can find id!!
-
-            
-        
