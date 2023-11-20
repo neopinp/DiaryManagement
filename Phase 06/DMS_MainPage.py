@@ -222,27 +222,27 @@ def saveDiary(root, window, frame, title, subject, currentOrg, framesList, actio
 
     if action == 'new':
         try:
-            root.cursor.execute(f"SELECT org_id FROM Organizations WHERE org_name = '{currentOrg}'")
-            org_id = root.cursor.fetchall()[0]
+            root.cursor.execute(f"SELECT org_id FROM Organizations WHERE org_name = '{currentOrg}';")
+            org_id = root.cursor.fetchall()[0][0]
 
             root.cursor.execute(f"""INSERT INTO Diaries (title, date_created, last_updated, owner_id, subject, diaryOrg_id)
             VALUES("{title}", "{now}", "{now}", {root.currentUser_id}, "{subject}", {org_id});""")
             root.connection.commit()
             
-            root.cursor.execute(f"""INSERT INTO UserDiaries (user_id, diary_id) VALUE ({root.currentUser_id}, (SELECT MAX(LAST_INSERT_ID()) FROM Diaries));""")
+            root.cursor.execute(f"""INSERT INTO UserDiaries (user_id, diary_id) VALUES ({root.currentUser_id}, (SELECT MAX(LAST_INSERT_ID()) FROM Diaries));""")
             root.connection.commit()
         except Exception as e:
-            print(e)
+            print("save new Diary: ", e)
 
     elif action == 'edit':
         try:
-            root.cursor.execute(f"SELECT diary_id FROM Diaries WHERE title='{oldTitle}'")
-            diary_id = root.cursor.fetchall()[0]
+            root.cursor.execute(f"SELECT diary_id FROM Diaries WHERE title='{oldTitle}';")
+            diary_id = root.cursor.fetchall()[0][0]
             root.cursor.execute(f"""UPDATE Diaries
 SET title="{title}", last_updated="{now}", subject="{subject}" WHERE diary_id='{int(diary_id)}';""")
             root.connection.commit()
         except Exception as e:
-            print(e)
+            print("save edit diary: ", e)
 
     window.removeWidgets(master=None) ##close the window
     showOrgDiaries(root, framesList, currentOrg, title)
@@ -274,20 +274,23 @@ def editDiary(root, currentOrg, framesList, diary=None):
     
     
     if diary:
-        root.cursor.execute(f"SELECT diary_id, subject FROM Diaries WHERE title='{diary}'")
-        data = root.cursor.fetchall()[0]
-        diary_id, subject = data[0], data[1]
-        
-        if titleEntry.get():
-            titleEntry.delete(0, tk.END)
-        titleEntry.insert(0, diary)
-        if subjectEntry.get():
-            subjectEntry.delete(0, tk.END)
-        subjectEntry.insert(0, subject)
+        try:
+            root.cursor.execute(f"""SELECT diary_id, subject FROM diaryinfopgvw WHERE title='{diary}' AND org_name='{currentOrg}';""")
+            data = root.cursor.fetchall()[0]
+            diary_id, subject = data[0], data[1]
+            
+            if titleEntry.get():
+                titleEntry.delete(0, tk.END)
+            titleEntry.insert(0, diary)
+            if subjectEntry.get():
+                subjectEntry.delete(0, tk.END)
+            subjectEntry.insert(0, subject)
 
-        saveButton.config(command=lambda cO=currentOrg,
-            saveButton=saveButton:saveDiary(root, window, frame1, titleEntry.get(),
+            saveButton.config(command=lambda cO=currentOrg,
+                saveButton=saveButton:saveDiary(root, window, frame1, titleEntry.get(),
                                             subjectEntry.get(), cO, framesList, action='edit', oldTitle=diary))
+        except Exception as e:
+            print("first Edit: ", e)
         
     else:
         saveButton.config(command=lambda cO=currentOrg,
@@ -541,3 +544,18 @@ def MainPage(root):
 
     populateOptionsFrame(root, framesList)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
