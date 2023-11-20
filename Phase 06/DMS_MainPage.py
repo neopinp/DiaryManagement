@@ -373,16 +373,20 @@ def createDiary(root, framesList, currentOrg, diaryTitle=None):
     editDiaryButton = tk.Button(monthYearFrame, text="Edit Diary",
                                 command=lambda:editDiary(root, currentOrg, framesList, diary=diaryTitle))
     editDiaryButton.pack(side='left')
+    
+    addEntryButton = tk.Button(monthYearFrame, text="Add Entry",
+                                command=lambda:addEntry(root, currentOrg, framesList, diaryTitle))
+    addEntryButton.pack(side='left')
 
     showCalendar(root, calendarFrame, framesList, months.index(monthsCombo.get())+1, int(yearsCombo.get()), today, diaryTitle)
 
     iterateEntries(root, framesList[4], diaryTitle)
 
+    populateSearchFrame(root, framesList, diaryTitle, currentOrg)
+
 
 def showCalendar(root, calendarFrame, framesList, month, year, today, diaryTitle):
     cdf=framesList[1]
-    
-    
     ##clear calendar
     root.removeWidgets(calendarFrame)
 
@@ -417,6 +421,11 @@ def showCalendar(root, calendarFrame, framesList, month, year, today, diaryTitle
                         dayButton = tk.Button(calendarFrame, text=dayNum, width=9, height=5) ##otherwise, no indication
                     dayButton.grid(column=day, row=week+1, sticky='nsew')
                     dayNum+=1
+
+                    
+def addEntry(root, currentOrg, framesList, diaryTitle):
+    pass
+
 
 
 def iterateEntries(root, entryFrame, diaryTitle):
@@ -512,6 +521,76 @@ def editEntry(window, frame):
     
     window.run() ##open the window
 
+
+def searchEntries(root, criteria, details):
+    query= ''
+    match criteria:
+        case "Title": query=f"""SELECT entry_title, start_time FROM EntryInfoPgVW WHERE entry_title LIKE '{details}%';"""
+        case "Date": query=f"""SELECT entry_title, start_time FROM EntryInfoPgVW WHERE start_time LIKE '{details}%';"""
+        case "Time": query=f"""SELECT entry_title, start_time FROM EntryInfoPgVW WHERE start_time LIKE '%{details}';"""
+        case "Duration": query=f"""SELECT entry_title, start_time FROM EntryInfoPgVW WHERE duration LIKE '{details}';"""
+        
+
+    
+    iterateEntries(root, entryFrame, diaryTitle)
+
+def searchHelper(root, searchFrame, criteria):
+    root.removeWidgets(searchFrame)
+
+    t="" 
+    match criteria:
+        case "Date":
+            t="Enter a Date (format: yyyy-mm-dd):"
+        case "Time":
+            t="Enter a Time (HH:MM:SS):"
+        case "Title":
+            t="Enter Entry Title:"
+        case "Duration":
+            t="Enter Duration (hours): "
+        case "Description":
+            t="Enter Entry Description: "
+        case "No Criteria":
+            t ='''Choose Criteria above and
+press 'Go' to confirm selection.
+Then, type details in the entry
+box on the right.'''
+         
+    searchLabel2=tk.Label(searchFrame, text=t, font=("Helvetica", 11))
+    searchLabel2.pack(side='left')
+
+    
+    searchEntry = tk.Entry(searchFrame)
+    searchButton=tk.Button(searchFrame, text="Search", command=lambda:searchEntries(root, criteria, searchEntry.get()))
+    
+    searchButton.pack(side='right')
+    searchEntry.pack(side='right', padx=5)
+
+
+def populateSearchFrame(root, framesList, diaryTitle, currentOrg):
+    srf=framesList[3]
+    searchFrame1 = tk.Frame(srf)
+    searchLabel1=tk.Label(searchFrame1, text="Search by:", font=("Helvetica", 11))
+    searchLabel1.pack(side='left')
+
+    searchByCombo = Combobox(searchFrame1, width=12, state="readonly")
+    searchByCombo['values']= ("No Criteria", "Date", "Time",
+                      "Title", "Duration", "Description")
+    searchByCombo.set("No Criteria Set")
+    searchByCombo.current(0)
+
+    searchFrame2 = tk.Frame(srf)
+    searchHelper(root, searchFrame2, searchByCombo.get())
+    goButtonSearch = Button(searchFrame1, text="Go",
+                            command=lambda:searchHelper(root, searchFrame2, searchByCombo.get()))
+
+    searchByCombo.pack(side='left', pady=10)
+    goButtonSearch.pack(side='left', padx=5)
+
+
+    searchFrame1.pack(side='top')
+    searchFrame2.pack(side='top')
+
+    
 
 
 def MainPage(root):
