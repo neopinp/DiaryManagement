@@ -43,11 +43,11 @@ class RootWindow():
     def getUserDiaryData(self):
         if self.currentUser_id:
             self.cursor.execute(f"""SELECT title, O.org_name, O.org_id FROM Users U
-JOIN UserDiaries UD ON UD.user_id = U.user_id
-JOIN Diaries D ON D.diary_id = UD.diary_id
-JOIN Organizations O ON O.org_id = D.diaryOrg_id
-WHERE U.user_id={self.currentUser_id}
-ORDER BY D.diary_id;""")
+                JOIN UserDiaries UD ON UD.user_id = U.user_id
+                JOIN Diaries D ON D.diary_id = UD.diary_id
+                JOIN Organizations O ON O.org_id = D.diaryOrg_id
+                WHERE U.user_id={self.currentUser_id}
+                ORDER BY D.diary_id;""")
     
         return self.cursor.fetchall()
 
@@ -55,10 +55,10 @@ ORDER BY D.diary_id;""")
     def getUserOrgData(self):
         if self.currentUser_id:
             self.cursor.execute(f"""SELECT OM.org_id, O.org_name FROM Users U
-INNER JOIN organizationmembers OM ON OM.user_id = U.user_id
-INNER JOIN Organizations O ON O.org_id = OM.org_id
-WHERE U.user_id = {self.currentUser_id}
-ORDER BY U.user_id;""")
+                INNER JOIN organizationmembers OM ON OM.user_id = U.user_id
+                INNER JOIN Organizations O ON O.org_id = OM.org_id
+                WHERE U.user_id = {self.currentUser_id}
+                ORDER BY U.user_id;""")
     
         return self.cursor.fetchall()
         
