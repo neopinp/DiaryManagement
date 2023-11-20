@@ -14,8 +14,8 @@ def Action(root, username, password, master=None):
     ##if verified, displays a confirmation message and sends the user to the main page.
     ##otherwise, shows a warning and allows the user to retry.
     
-    #user_id=verifyCredentials(root, username, password)
-    user_id = 1
+    user_id=verifyCredentials(root, username, password)
+    #user_id = 1 #for easy login
     if user_id:
         root.cursor.execute(f"""SELECT fullname FROM Users WHERE user_id={user_id};""")
         fullname = root.cursor.fetchone()[0]
@@ -53,7 +53,7 @@ def Login(root):
     passwordLabel = tk.Label(entryFrame, text='Password')
 
     userEntry = tk.Entry(entryFrame)  
-    passEntry = tk.Entry(entryFrame)
+    passEntry = tk.Entry(entryFrame, show="*")
 
     loginButton = tk.Button(innerFrame, text="Log In",
                             command=lambda:Action(root, userEntry.get(), passEntry.get(), master=root.root))
