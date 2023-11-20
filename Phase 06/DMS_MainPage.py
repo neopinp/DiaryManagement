@@ -1,6 +1,6 @@
 ##Team Sweet Dreams Diary Management System
 ##created on: 11/15/23
-##last updated: 11/19/2023
+##last updated: 11/20/2023
 
 ##The following code defines the main screen for the Diary Management System.
 ##If a user is logged in successfully, this screen will appear.
@@ -60,34 +60,57 @@ def banner(root):
     return mainFrame, aW, aH
 
 def openSettings(root):
-    ##opens the Settings window
-    ##that allows a user to view their user information
-    ##or add, update, depete that information if the user is an Admin.
+    ##opens a new window that allows a user
+    ##to edit their account information
+    ##if id=None, it prompts to login.
 
     ##create the popup
-    settingsWindow = RootWindow(title="Edit Organization")
-    settingsWindow.root.geometry("500x500")
+    userSettingsWindow = RootWindow(title="User Settings")
+    userSettingsWindow.root.geometry("700x700")
     
     ##define the contents
-    frame1 = tk.Frame(settingsWindow.root, bg="Blue")
-    nameLabel=tk.Label(frame1, text="Organization name:")
+    frame1 = tk.Frame(userSettingsWindow.root, bg="")
+    
+    nameLabel=tk.Label(frame1, text="Name:")
+    nameInfo=tk.Label(frame1, text=f'{root.getCurrentUserDetails()[3]}') #Displays Name
+    
+    usernameLabel=tk.Label(frame1, text="Username:")
+    usernameInfo=tk.Label(frame1, text=f'{root.getCurrentUserDetails()[4]}') # Displays Username
+
+    passLabel=tk.Label(frame1, text="Password:")
+    passInfo=tk.Label(frame1, text="*********")
+
+    orgsLabel=tk.Label(frame1, text="Organizations:")
+
+
     nameEntry=tk.Entry(frame1)
     
     ##only passing the window to Save,
     ##so master of .removeWidgets(master) is None, which will close the whole window.
-    saveButton=tk.Button(frame1, text='Save Changes', command=lambda:Save(settingsWindow))
-    backButton=tk.Button(frame1, text='<- Back', command=lambda:closeWindow(settingsWindow))
-    
+    backButton=tk.Button(frame1, text='<- Back', command=lambda:userSettingsWindow.removeWidgets())
+    #editButton=tk.Button(frame1, text='Edit Information', command=lambda:editUserSettings(userSettingsWindow), command=lambda:closeWindow(userSettingsWindow))
+    editButton=tk.Button(frame1, text='Edit Information', command=lambda: [editUserSettings(userSettingsWindow), closeWindow(userSettingsWindow)])
+
 
     ##Add the contents to the window
     frame1.pack()
-    nameLabel.grid(column=1, row=2)
-    nameEntry.grid(column=2, row=2)
-    saveButton.grid(column=3, row=3)
     backButton.grid(column=1, row=1)
-    cancelButton.grid(column=2, row=2, padx=5, pady=10, sticky='nsew')
+    editButton.grid(column=3, row=1)
+    nameLabel.grid(column=1, row=3)
 
-    settingsWindow.run()
+    usernameLabel.grid(column=1, row=4)
+    passLabel.grid(column=1, row=5)
+    orgsLabel.grid(column=1, row=7)
+    
+    # nameEntry.grid(column=2, row=3)
+    
+    nameInfo.grid(column=2, row=3)
+    usernameInfo.grid(column=2, row=4)
+    
+    userSettingsWindow.run() ##open the window
+
+def editUserSettings(userSettingsWindow):
+    pass
 
 
 def getImage(filename, w, h):
@@ -186,7 +209,31 @@ def populateOptionsFrame(root, framesList):
     showOrgDiaries(root, framesList, orgsCombo.get())
 
 
+def EditOrg(id=None):
+    ##opens a new window that allows a user
+    ##to edit an organization's information
+    ##if id=None, it prompts to create a new organization.
 
+    ##create the popup
+    editWindow = RootWindow(title="Edit Organization")
+    editWindow.root.geometry("500x500")
+    
+    ##define the contents
+    frame1 = tk.Frame(editWindow.root, bg="Blue")
+    nameLabel=tk.Label(frame1, text="Organization name:")
+    nameEntry=tk.Entry(frame1)
+    
+    ##only passing the window to Save,
+    ##so master of .removeWidgets(master) is None, which will close the whole window.
+    saveButton=tk.Button(frame1, text='Save Changes', command=lambda:Save(editWindow))
+
+    ##Add the contents to the window
+    frame1.pack()
+    nameLabel.grid(column=1, row=1)
+    nameEntry.grid(column=2, row=1)
+    saveButton.grid(column=3, row=2)
+    
+    editWindow.run() ##open the window
 
 
 
@@ -208,9 +255,7 @@ def showOrgDiaries(root, framesList, currentOrg, returnTitle=None):
         bg="Pink", width=20, command=lambda:editDiary(root, currentOrg, framesList)) ##pass with no third parameter prompts to add new
     addDiaryButton.pack(padx=5, pady=10)
 
-    createDiary(root, framesList, currentOrg, diaryTitle=returnTitle)
-
-    
+    createDiary(root, framesList, currentOrg, diaryTitle=returnTitle) 
 
 
 def saveDiary(root, window, frame, title, subject, currentOrg, framesList, action, oldTitle=None):
@@ -244,6 +289,15 @@ SET title="{title}", last_updated="{now}", subject="{subject}" WHERE diary_id='{
         except Exception as e:
             print("save edit diary: ", e)
 
+    elif action == 'delete':
+        try:
+            root.cursor.execute(f"SELECT diary_id FROM Diaries WHERE title='{oldTitle}';")
+            diary_id = root.cursor.fetchall()[0][0]
+            root.cursor.execute(f"""DELETE FROM Diaries WHERE diary_id='{int(diary_id)}';""")
+            root.connection.commit()
+        except Exception as e:
+            print("save delete diary: ", e)
+
     window.removeWidgets(master=None) ##close the window
     showOrgDiaries(root, framesList, currentOrg, title)
 
@@ -264,14 +318,13 @@ def editDiary(root, currentOrg, framesList, diary=None):
     subjectLabel=tk.Label(frame1, text="Subject:")
     subjectEntry=tk.Entry(frame1, width=100)
     cancelButton=tk.Button(frame1, text='Cancel', command=lambda:window.root.destroy())
+    deleteButton=tk.Button(frame1, text='Delete This Diary')
     
     ##only passing the window to Save,
     ##so master of .removeWidgets(master) is None, which will close the whole window.
     saveButton=tk.Button(frame1, text='Save')
     saveButton.config(command=lambda cO=currentOrg,
                     saveButton=saveButton:saveDiary(root, window, frame1, titleEntry.get(), subjectEntry.get(), cO, framesList))
-
-    
     
     if diary:
         try:
@@ -289,6 +342,11 @@ def editDiary(root, currentOrg, framesList, diary=None):
             saveButton.config(command=lambda cO=currentOrg,
                 saveButton=saveButton:saveDiary(root, window, frame1, titleEntry.get(),
                                             subjectEntry.get(), cO, framesList, action='edit', oldTitle=diary))
+
+            deleteButton.config(command=lambda cO=currentOrg,
+                    deleteButton=deleteButton:saveDiary(root, window, frame1, titleEntry.get(),
+                                            subjectEntry.get(), cO, framesList, action='delete', oldTitle=diary))
+    
         except Exception as e:
             print("first Edit: ", e)
         
@@ -305,6 +363,7 @@ def editDiary(root, currentOrg, framesList, diary=None):
     subjectEntry.grid(column=2, row=2, padx=10, pady=10, sticky='nsew')
     cancelButton.grid(column=3, row=3, padx=5, pady=10, sticky='nsew')
     saveButton.grid(column=4, row=3, padx=5, pady=10, sticky='nsew')
+    deleteButton.grid(column=1, row=3, padx=5, pady=10, sticky='nsew')
 
 
     titleEntry.focus()
@@ -428,7 +487,7 @@ def addEntry(root, currentOrg, framesList, diaryTitle):
 
 
 
-def iterateEntries(root, entryFrame, diaryTitle):
+def iterateEntries(root, entryFrame, diaryTitle, query=None):
 
     def x(entryFrame, title, color):
         lis=entryFrame.winfo_children()
@@ -442,8 +501,11 @@ def iterateEntries(root, entryFrame, diaryTitle):
     #reset the frame                
     root.removeWidgets(entryFrame)
 
-    root.cursor.execute(f"""SELECT entry_title, start_time, priority, entryOwner_id
-FROM EntryInfoPgVW WHERE diary_title = '{diaryTitle}'""")
+    if not query:
+        query = f"""SELECT entry_title, start_time, priority, entryOwner_id
+FROM EntryInfoPgVW WHERE diary_title = '{diaryTitle}';"""
+
+    root.cursor.execute(query)
     entries = root.cursor.fetchall()
 
     role = root.getCurrentUserRoleDetails()
@@ -522,19 +584,23 @@ def editEntry(window, frame):
     window.run() ##open the window
 
 
-def searchEntries(root, criteria, details):
+def searchEntries(root, entryFrame, diaryTitle, criteria, details):
     query= ''
     match criteria:
-        case "Title": query=f"""SELECT entry_title, start_time FROM EntryInfoPgVW WHERE entry_title LIKE '{details}%';"""
-        case "Date": query=f"""SELECT entry_title, start_time FROM EntryInfoPgVW WHERE start_time LIKE '{details}%';"""
-        case "Time": query=f"""SELECT entry_title, start_time FROM EntryInfoPgVW WHERE start_time LIKE '%{details}';"""
-        case "Duration": query=f"""SELECT entry_title, start_time FROM EntryInfoPgVW WHERE duration LIKE '{details}';"""
-        
+        case "Place":
+            query=f"""SELECT location_id, address_ln_1, address_ln2, city, state, zip FROM EntryInfoPgVW WHERE (address_ln_1 LIKE '%{details}%' OR address_ln2 LIKE '%{details}%' OR city LIKE '%{details}%' OR state LIKE '%{details}%' OR zip LIKE '%{details}%')AND title = '{diaryTitle}';"""
+        case "Date":
+            query=f"""SELECT entry_title, start_time FROM EntryInfoPgVW WHERE start_time LIKE '{details}%';"""
 
+        case "Time":
+            query=f"""SELECT entry_title, start_time FROM EntryInfoPgVW WHERE start_time LIKE '%{details}';"""
+
+        case "Duration":
+            query=f"""SELECT entry_title, start_time FROM EntryInfoPgVW WHERE duration LIKE '{details}';"""
+    iterateEntries(root, entryFrame, diaryTitle, query=query)
     
-    iterateEntries(root, entryFrame, diaryTitle)
 
-def searchHelper(root, searchFrame, criteria):
+def searchHelper(root, searchFrame, entryFrame, diaryTitle, criteria):
     root.removeWidgets(searchFrame)
 
     t="" 
@@ -543,12 +609,10 @@ def searchHelper(root, searchFrame, criteria):
             t="Enter a Date (format: yyyy-mm-dd):"
         case "Time":
             t="Enter a Time (HH:MM:SS):"
-        case "Title":
-            t="Enter Entry Title:"
         case "Duration":
             t="Enter Duration (hours): "
-        case "Description":
-            t="Enter Entry Description: "
+        case "Place":
+            t="Enter a Place: "
         case "No Criteria":
             t ='''Choose Criteria above and
 press 'Go' to confirm selection.
@@ -560,7 +624,7 @@ box on the right.'''
 
     
     searchEntry = tk.Entry(searchFrame)
-    searchButton=tk.Button(searchFrame, text="Search", command=lambda:searchEntries(root, criteria, searchEntry.get()))
+    searchButton=tk.Button(searchFrame, text="Search", command=lambda:searchEntries(root, entryFrame, diaryTitle, criteria, searchEntry.get()))
     
     searchButton.pack(side='right')
     searchEntry.pack(side='right', padx=5)
@@ -568,20 +632,20 @@ box on the right.'''
 
 def populateSearchFrame(root, framesList, diaryTitle, currentOrg):
     srf=framesList[3]
+    root.removeWidgets(srf)
     searchFrame1 = tk.Frame(srf)
     searchLabel1=tk.Label(searchFrame1, text="Search by:", font=("Helvetica", 11))
     searchLabel1.pack(side='left')
 
     searchByCombo = Combobox(searchFrame1, width=12, state="readonly")
-    searchByCombo['values']= ("No Criteria", "Date", "Time",
-                      "Title", "Duration", "Description")
+    searchByCombo['values']= ("No Criteria", "Date", "Time", "Duration", "Location")
     searchByCombo.set("No Criteria Set")
     searchByCombo.current(0)
 
     searchFrame2 = tk.Frame(srf)
-    searchHelper(root, searchFrame2, searchByCombo.get())
+    searchHelper(root, searchFrame2, framesList[4], diaryTitle, searchByCombo.get())
     goButtonSearch = Button(searchFrame1, text="Go",
-                            command=lambda:searchHelper(root, searchFrame2, searchByCombo.get()))
+                            command=lambda:searchHelper(root, searchFrame2, framesList[4], diaryTitle, searchByCombo.get()))
 
     searchByCombo.pack(side='left', pady=10)
     goButtonSearch.pack(side='left', padx=5)
@@ -623,18 +687,3 @@ def MainPage(root):
 
     populateOptionsFrame(root, framesList)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
