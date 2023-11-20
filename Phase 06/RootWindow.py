@@ -19,17 +19,18 @@ class RootWindow():
         self.root.title(title)
         self.currentUser_id = None
         ##put this in a config.py file if we have the time!!!
-        self._connection = mysql.connector.connect(
+        self.connection = mysql.connector.connect(
             host="localhost", user="root", password='root', database="teamsweetdreams_dms")
-        self.cursor = self._connection.cursor()
-        #self.data = self.__getData()
+        self.cursor = self.connection.cursor()
         self.details = {
             'currentPage':None, ##keep track of what page is being shown
             'currentWidgets': self.__getAllWidgets() ##keep track of all widgets currently on the page
             }
 
-    def __getData(self):
-        pass
+    def getCurrentUserRoleDetails(self):
+        if self.currentUser_id:
+            self.cursor.execute(f"""SELECT * FROM Roles WHERE role_id=(SELECT role_id FROM Users WHERE user_id={self.currentUser_id});""")
+            return self.cursor.fetchall()[0]
 
     def setCurrentUser(self, user):
         self.currentUser_id = user
@@ -38,7 +39,28 @@ class RootWindow():
         if self.currentUser_id:
             self.cursor.execute(f"""SELECT * FROM Users WHERE user_id={self.currentUser_id};""")
             return self.cursor.fetchall()[0]
-            
+
+    def getUserDiaryData(self):
+        if self.currentUser_id:
+            self.cursor.execute(f"""SELECT title, O.org_name, O.org_id FROM Users U
+JOIN UserDiaries UD ON UD.user_id = U.user_id
+JOIN Diaries D ON D.diary_id = UD.diary_id
+JOIN Organizations O ON O.org_id = D.diaryOrg_id
+WHERE U.user_id={self.currentUser_id}
+ORDER BY D.diary_id;""")
+    
+        return self.cursor.fetchall()
+
+
+    def getUserOrgData(self):
+        if self.currentUser_id:
+            self.cursor.execute(f"""SELECT OM.org_id, O.org_name FROM Users U
+INNER JOIN organizationmembers OM ON OM.user_id = U.user_id
+INNER JOIN Organizations O ON O.org_id = OM.org_id
+WHERE U.user_id = {self.currentUser_id}
+ORDER BY U.user_id;""")
+    
+        return self.cursor.fetchall()
         
 
     def __getAllWidgets(self):
