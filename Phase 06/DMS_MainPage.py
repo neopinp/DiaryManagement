@@ -188,7 +188,7 @@ ORDER BY D.diary_id;""")
 
     showOrgDiaries(root, diaryListFrame, orgsCombo.get(), calendarFrame, entryFrame, userDiaryData)
 
-    createDiary(root, calendarFrame, entryFrame, orgsCombo.get(), userDiaryData)
+    createDiary(root, calendarFrame, entryFrame, orgsCombo.get())
 
 def showOrgDiaries(root, diaryListFrame, currentOrg, calendarFrame, entryFrame, userDiaryData):
     root.removeWidgets(diaryListFrame)
@@ -199,7 +199,7 @@ def showOrgDiaries(root, diaryListFrame, currentOrg, calendarFrame, entryFrame, 
     for item in userDiaryData:
         if item[-1]==currentOrg: ##if the organization name is the same as the one in the combobox
             diaryButton = tk.Button(diaryListFrame, text=item[0], font=('Helvetica', 11),
-                                    bg="Pink", width=8, command=lambda:createDiary(root, calendarFrame, entryFrame, currentOrg, userDiaryData))
+                                    bg="Pink", width=8, command=lambda:createDiary(root, calendarFrame, entryFrame, currentOrg))
             diaryButton.pack(padx=5, pady=10)
             hasDiaries = True
     if not hasDiaries:
@@ -207,16 +207,28 @@ def showOrgDiaries(root, diaryListFrame, currentOrg, calendarFrame, entryFrame, 
         pass
     
 
-def createDiary(root, wholeFrame, entryFrame, currentOrg, userDiaryData):
+def createDiary(root, wholeFrame, entryFrame, currentOrg):
     ##this will be cleaned up in time.
     ##creates a calendar that tells you what day it is.
     ##functional but incomplete, will update soon.
+    print(currentOrg)
+
+    ##Retrieve a specified user's diaries and all of their entries
+    root.cursor.execute(f"""SELECT D.title, O.org_name, E.* FROM Diaries D
+JOIN Entries E ON E.entryDiary_id=D.diary_id
+JOIN UserDiaries UD ON UD.diary_id = D.diary_id
+JOIN Organizations O ON O.org_id = D.diaryOrg_id
+WHERE UD.user_id={root.currentUser_id} AND O.org_name="{currentOrg}"
+ORDER BY D.title;""")
+
+    diaryEntryData = root.cursor.fetchall()
     
     ##clear the screen
     root.removeWidgets(wholeFrame)
 
     ##create title headers
-    diaryTitle="Diary"
+    diaryTitle=diaryEntryData[0][0]
+    
     diaryTitle=tk.Label(wholeFrame, text=diaryTitle, font=("Helvetica", 20))
     diaryTitle.pack(side='top', pady=20)
 
@@ -237,24 +249,30 @@ def createDiary(root, wholeFrame, entryFrame, currentOrg, userDiaryData):
     for i in range(2023, today.year+10): ##get a list of ten years from this year, starting from 2023
         years.append(i)
 
+
+    ##create comboboxes
     monthsCombo = Combobox(monthYearFrame, width=10, state="readonly")
     monthsCombo['values']=months
     monthsCombo.current((datetime.date.today().month)-1) ##index starts at 0
     monthsCombo.pack(side='left')
-
+    
     yearsCombo = Combobox(monthYearFrame,width=8, state="readonly")
     yearsCombo['values']=years
     yearsCombo.current((datetime.date.today().year)-2023)##first index is this year (2023)
     yearsCombo.pack(side='left', pady=10)
 
-    showCalendarButton = tk.Button(monthYearFrame, text="Show Calendar", command=lambda:showCalendar(root, calendarFrame, months.index(monthsCombo.get())+1, int(yearsCombo.get()), today))
+    showCalendarButton = tk.Button(monthYearFrame, text="Show Calendar",
+            command=lambda:showCalendar(root, calendarFrame, entryFrame, months.index(monthsCombo.get())+1,
+                                        int(yearsCombo.get()), today, diaryEntryData))
     showCalendarButton.pack(side='left', padx=5)
 
-    showCalendar(root, calendarFrame, months.index(monthsCombo.get())+1, int(yearsCombo.get()), today)
+    showCalendar(root, calendarFrame, entryFrame, months.index(monthsCombo.get())+1, int(yearsCombo.get()), today, diaryEntryData)
 
-def showCalendar(root, calendarFrame, month, year, today):
+def showCalendar(root, calendarFrame, entryFrame, month, year, today, diaryEntryData):
     ##clear calendar
     root.removeWidgets(calendarFrame)
+
+    command= iterateEntries(root, entryFrame, diaryEntryData)
 
     weekdays=[]
     ##have to pull out sunday and do it separately because it absolutely refuses all attempts to be first in the iteration
@@ -330,12 +348,12 @@ def showEntryDetails(entryFrame, entryId=None):
     
     window.run() ##open the window
 
-def iterateEntries(frame, frameWidth, frameHeight, numEntries):
-    for i in range(1,numEntries+1):
+def iterateEntries(root, entryFrame, diaryEntryData):
+    for i in range(1,5):
         startTime=datetime.datetime.strftime(datetime.datetime.now(), "%y/%m/%d %I:%M %p")
         txt=f"Entry {i}\n{startTime}"
         img= getPriorityImage(priority=1)
-        entryButton = Button(frame, text=txt, width=60, image=img, compound=tk.LEFT, command=lambda:showEntryDetails(frame, entryId=None))
+        entryButton = Button(entryFrame, text=txt, width=60, image=img, compound=tk.LEFT, command=lambda:showEntryDetails(frame, entryId=None))
         entryButton.pack(fill='both', padx=5, pady=5)
         entryButton.image=img
         
@@ -389,9 +407,6 @@ def MainPage(root):
     label = tk.Label(searchFrame, image = img) #display the image
     label.image = img ##create a reference to the object so tkinter does not make it show up transparent
     label.pack()
-    
-    numEntries=4
-    iterateEntries(entryFrame, entryFrameWidth, entryFrameHeight, numEntries)
 
     ##it is possible to grab index of specific widget (button) and reference it.
     lis=entryFrame.winfo_children()
