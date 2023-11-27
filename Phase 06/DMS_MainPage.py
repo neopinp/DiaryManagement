@@ -1,6 +1,6 @@
 ##Team Sweet Dreams Diary Management System
 ##created on: 11/15/23
-##last updated: 11/20/2023
+##last updated: 11/27/2023
 
 ##The following code defines the main screen for the Diary Management System.
 ##If a user is logged in successfully, this screen will appear.
@@ -25,24 +25,24 @@ def banner(root):
     aH-=topH
     
     ##rewrite the width and height to variables to reduce hardcoded numbers
-    topBanner = tk.Frame(root.root, bg="Red", width=topW, height=topH)
-    leftSpacer = tk.Frame(root.root, bg="Green",width=spacerW, height=spacerH)
-    rightSpacer = tk.Frame(root.root, bg="Green",width=spacerW, height=spacerH)
+    topBanner = tk.Frame(root.root, bg="Pink", width=topW, height=topH)
+    leftSpacer = tk.Frame(root.root, bg="Purple",width=spacerW, height=spacerH)
+    rightSpacer = tk.Frame(root.root, bg="Purple",width=spacerW, height=spacerH)
     mainFrame = tk.Frame(root.root, bg="Purple", width=aW, height=aH)
     
     frame11 = tk.Frame(topBanner, height=100, width=300)
-    frame112 = tk.Frame(frame11, bg='Red', height=50, width=200)
-    frame113 = tk.Frame(frame11, bg='Red', height=50, width=200)
-    frame114 = tk.Frame(frame11, bg='Red', height=topH, width=topH)
+    frame112 = tk.Frame(frame11, bg='Pink', height=50, width=200)
+    frame113 = tk.Frame(frame11, bg='Pink', height=50, width=200)
+    frame114 = tk.Frame(frame11, bg='Pink', height=topH, width=topH)
 
-    nameLabel = tk.Label(frame112, text=f'{root.getCurrentUserDetails()[3]}', font=('Helvetica', 14), bg='Red')
-    roleLabel = tk.Label(frame113, text=f'Role', font=('Helvetica', 11), bg='Red')
+    nameLabel = tk.Label(frame112, text=f'{root.getCurrentUserDetails()[3]}', font=('Helvetica', 14), bg='Pink')
+    roleLabel = tk.Label(frame113, text=f'{root.getCurrentUserRoleDetails()[1]}', font=('Helvetica', 11), bg='Pink')
 
-    img=getImage("gear.png", topH-5, topH-5)
+    img=root.getImage("gear.png", topH-5, topH-5)
     settingsButton = tk.Button(frame114, image=img, command=lambda:openSettings(root))
     settingsButton.image=img
 
-    topLabel = tk.Label(topBanner, text="Diary Management System", font=("Helvetica", 35), bg="Red", fg="White")
+    topLabel = tk.Label(topBanner, text="Diary Management System", font=("Helvetica", 35), bg="Pink", fg="Black")
 
     topBanner.pack(side='top', fill="both")
     leftSpacer.pack(side='left', fill="both")
@@ -52,9 +52,9 @@ def banner(root):
     frame114.pack(side='right', fill="both")
     frame112.pack(fill="both")
     frame113.pack(fill="both")
-    nameLabel.pack(padx=10, pady=10, fill='both')
-    roleLabel.pack(padx=10, fill='both')
-    settingsButton.pack(padx=10, pady=10)
+    nameLabel.pack(padx=10, pady=12, fill='both')
+    roleLabel.pack(padx=10, fill='both', pady=10)
+    settingsButton.pack(padx=15, pady=10)
 
     
     return mainFrame, aW, aH
@@ -102,8 +102,6 @@ def openSettings(root):
     passLabel.grid(column=1, row=5)
     orgsLabel.grid(column=1, row=7)
     
-    # nameEntry.grid(column=2, row=3)
-    
     nameInfo.grid(column=2, row=3)
     usernameInfo.grid(column=2, row=4)
     
@@ -111,15 +109,6 @@ def openSettings(root):
 
 def editUserSettings(userSettingsWindow):
     pass
-
-
-def getImage(filename, w, h):
-    ##returns an image to display, resized.
-    img = Image.open(filename) # load image
-    resized_image = img.resize((w,h), Image.Resampling.LANCZOS) # resize, remove structural padding
-    new_image = ImageTk.PhotoImage(resized_image)# convert to photoimage
-    return new_image
-
 
 def Save(root, master=None):
     ##this function will update the database with the new information.
@@ -170,7 +159,7 @@ def populateOptionsFrame(root, framesList):
     comboFrame.pack(fill='both')
     headingFrame2 = tk.Frame(opf, bg="Purple")
     headingFrame2.pack(fill='both')
-    diaryListFrame = tk.Frame(opf, bg="Purple")
+    diaryListFrame = tk.Frame(opf, bg="White")
     diaryListFrame.pack(fill='both')
 
     if diaryListFrame not in framesList:
@@ -178,9 +167,9 @@ def populateOptionsFrame(root, framesList):
 
     ##Add heading labels
     heading=tk.Label(headingFrame, text="Organization", font=('Helvetica', 20), bg="Purple", fg="Light Blue")
-    heading.pack(padx=10, pady=10)
-    heading2=tk.Label(headingFrame2, text="Diaries", font=('Helvetica', 18), bg="Purple", fg="Light Blue")
-    heading2.pack(padx=10, pady=10)
+    #heading.pack(padx=10, pady=10)
+    heading2=tk.Label(headingFrame2, text="Diaries", font=('Helvetica', 18), bg="White", fg="Purple")
+    heading2.pack(padx=10, pady=10, fill=tk.X)
 
     userOrgData = root.getUserOrgData()
 
@@ -188,23 +177,23 @@ def populateOptionsFrame(root, framesList):
     for item in userOrgData:
         orgs.append(item[-1]) ##append organization name
 
-    orgsCombo = Combobox(comboFrame, font=('Helvetica', 12), state="readonly")
+    orgsCombo = Combobox(comboFrame, font=('Helvetica', 18), state="readonly")
     orgsCombo['values']=orgs
     orgsCombo.current(0)
-    orgsCombo.pack(side='left', padx=10)
+    orgsCombo.pack(padx=10, pady=10)
 
         
     ##get all diaries a user has access to and the organization it is associated with(title and id)   
     userDiaryData=root.getUserDiaryData()
 
-    showDiariesButton = tk.Button(comboFrame, text='Show Diaries', font=('Helvetica', 11),
-                                  bg="Red", command=lambda:showOrgDiaries(root, framesList, orgsCombo.get()))
-    editButton = tk.Button(comboFrame, text='Edit', font=('Helvetica', 11),
+    showDiariesButton = tk.Button(comboFrame, text='Show Diaries', font=('Helvetica', 12),
+                                  bg="Pink", command=lambda:showOrgDiaries(root, framesList, orgsCombo.get()))
+    editButton = tk.Button(comboFrame, text='Edit', font=('Helvetica', 12),
                                    bg="Pink", command=lambda:EditOrg(orgsCombo.get()))
     #editButton.configure(command=lambda editButton=editButton:EditOrg())
     
-    showDiariesButton.pack(side='left', padx=5)
-    editButton.pack(side='left', padx=5)
+    showDiariesButton.pack(padx=5, pady=5)
+    #editButton.pack(padx=5)
 
     showOrgDiaries(root, framesList, orgsCombo.get())
 
@@ -245,13 +234,13 @@ def showOrgDiaries(root, framesList, currentOrg, returnTitle=None):
     data=root.getUserDiaryData()
     for item in data:
         if item[1]==currentOrg: ##if the organization name is the same as the one in the combobox
-            diaryButton = tk.Button(dlf, text=item[0], font=('Helvetica', 11),
+            diaryButton = tk.Button(dlf, text=item[0], font=('Helvetica', 14),
                     bg="Pink", width=20)
             diaryButton.config(command=lambda diaryTitle=item[0], diaryButton = diaryButton: createDiary(root, framesList, currentOrg, diaryTitle=diaryTitle))
             diaryButton.pack(padx=5, pady=10)
             
     ##if permission allows:
-    addDiaryButton = tk.Button(dlf, text="Add Diary", font=('Helvetica', 11),
+    addDiaryButton = tk.Button(dlf, text="Add Diary +", font=('Helvetica', 14),
         bg="Pink", width=20, command=lambda:editDiary(root, currentOrg, framesList)) ##pass with no third parameter prompts to add new
     addDiaryButton.pack(padx=5, pady=10)
 
@@ -309,25 +298,39 @@ def editDiary(root, currentOrg, framesList, diary=None):
 
     ##create the popup
     window = RootWindow(title="Edit Diary")
-    window.root.geometry("800x200")
+    window.root.geometry("750x150")
     
     ##define the contents
-    frame1 = tk.Frame(window.root, bg="Blue")
-    titleLabel=tk.Label(frame1, text="Diary title:")
-    titleEntry=tk.Entry(frame1)
-    subjectLabel=tk.Label(frame1, text="Subject:")
-    subjectEntry=tk.Entry(frame1, width=100)
-    cancelButton=tk.Button(frame1, text='Cancel', command=lambda:window.root.destroy())
-    deleteButton=tk.Button(frame1, text='Delete This Diary')
+    frame1 = tk.Frame(window.root, bg="Pink")
+    frame2 = tk.Frame(window.root, bg="Pink")
+    frame3 = tk.Frame(window.root, bg="Pink")
+    titleLabel=tk.Label(frame1, text="Diary title:", font=('Helvetica',14), bg="Pink")
+    titleEntry=tk.Entry(frame1, font=('Helvetica',12))
+    subjectLabel=tk.Label(frame2, text="Subject:", font=('Helvetica',14), bg="Pink")
+    subjectEntry=tk.Entry(frame2, width=100, font=('Helvetica',12))
+    cancelButton=tk.Button(frame3, text='Cancel', command=lambda:window.root.destroy(), font=('Helvetica',12), bg="Light Blue")
+    deleteButton=tk.Button(frame3, text='Delete This Diary', font=('Helvetica',12), bg="Red", fg="White")
     
     ##only passing the window to Save,
     ##so master of .removeWidgets(master) is None, which will close the whole window.
-    saveButton=tk.Button(frame1, text='Save')
+    saveButton=tk.Button(frame3, text='Save',  font=('Helvetica',12), bg="Green", fg="White")
     saveButton.config(command=lambda cO=currentOrg,
                     saveButton=saveButton:saveDiary(root, window, frame1, titleEntry.get(), subjectEntry.get(), cO, framesList))
+
+    ##Add the contents to the window
+    frame1.pack(fill='both')
+    frame2.pack(fill='both')
+    frame3.pack(fill='both')
+    titleLabel.pack(side='left', padx=10, pady=10)
+    titleEntry.pack(side='left', padx=10, pady=10)
+    subjectLabel.pack(side='left', padx=5, pady=10)
+    subjectEntry.pack(side='left', padx=5, pady=10)
+    saveButton.pack(side='right', padx=10, pady=10)
+    cancelButton.pack(side='right', padx=10, pady=10)
     
     if diary:
         try:
+            deleteButton.pack(side='right', padx=20, pady=10)
             root.cursor.execute(f"""SELECT diary_id, subject FROM diaryinfopgvw WHERE title='{diary}' AND org_name='{currentOrg}';""")
             data = root.cursor.fetchall()[0]
             diary_id, subject = data[0], data[1]
@@ -349,34 +352,21 @@ def editDiary(root, currentOrg, framesList, diary=None):
     
         except Exception as e:
             print("first Edit: ", e)
-        
+            
     else:
         saveButton.config(command=lambda cO=currentOrg,
             saveButton=saveButton:saveDiary(root, window, frame1, titleEntry.get(), subjectEntry.get(),
                                             cO, framesList, action='new'))
 
-    ##Add the contents to the window
-    frame1.pack(fill='both')
-    titleLabel.grid(column=1, row=1, padx=10, pady=10, sticky='nsew')
-    titleEntry.grid(column=2, row=1, padx=10, pady=10, sticky='nsew')
-    subjectLabel.grid(column=1, row=2, padx=10, pady=10, sticky='nsew')
-    subjectEntry.grid(column=2, row=2, padx=10, pady=10, sticky='nsew')
-    cancelButton.grid(column=3, row=3, padx=5, pady=10, sticky='nsew')
-    saveButton.grid(column=4, row=3, padx=5, pady=10, sticky='nsew')
-    deleteButton.grid(column=1, row=3, padx=5, pady=10, sticky='nsew')
 
-
-    titleEntry.focus()
-    
     window.run() ##open the window
 
 
 def createDiary(root, framesList, currentOrg, diaryTitle=None):
-
-    cdf = framesList[1]
-    
     ##this function populates the middle calendar frame.
     ##with the diary name and a functional calendar.
+
+    cdf = framesList[1]
 
     ##Retrieve a specified user's diaries
     root.cursor.execute(f"SELECT title, org_name FROM diaryinfopgvw WHERE user_id = '{root.currentUser_id}'")
@@ -392,14 +382,14 @@ def createDiary(root, framesList, currentOrg, diaryTitle=None):
                 diaryTitle = item[0]
                 break
 
-    diaryLabel=tk.Label(cdf, text=diaryTitle, font=("Helvetica", 20))
+    diaryLabel=tk.Label(cdf, text=diaryTitle, font=("Helvetica", 28), bg="Purple", fg="Light Blue")
     diaryLabel.pack(side='top', pady=20)
 
-    monthYearFrame = tk.Frame(cdf)
+    monthYearFrame = tk.Frame(cdf, bg="Purple")
     monthYearFrame.pack(side='top')
 
     ##create the calendar
-    calendarFrame=tk.Frame(cdf) ##frame for the actual calendar
+    calendarFrame=tk.Frame(cdf, bg="White") ##frame for the actual calendar
     calendarFrame.pack(side='top', padx=20)
     
     ##initialize important veriables
@@ -414,28 +404,28 @@ def createDiary(root, framesList, currentOrg, diaryTitle=None):
 
 
     ##create comboboxes
-    monthsCombo = Combobox(monthYearFrame, width=10, state="readonly")
+    monthsCombo = Combobox(monthYearFrame, width=10, state="readonly", font=("Helvetica", 12))
     monthsCombo['values']=months
     monthsCombo.current((datetime.date.today().month)-1) ##index starts at 0
-    monthsCombo.pack(side='left')
+    monthsCombo.pack(side='left', padx=5)
     
-    yearsCombo = Combobox(monthYearFrame,width=8, state="readonly")
+    yearsCombo = Combobox(monthYearFrame,width=8, state="readonly", font=("Helvetica", 12))
     yearsCombo['values']=years
     yearsCombo.current((datetime.date.today().year)-2023)##first index is this year (2023)
     yearsCombo.pack(side='left', pady=10)
 
-    showCalendarButton = tk.Button(monthYearFrame, text="Show Calendar",
+    showCalendarButton = tk.Button(monthYearFrame, text="Show Calendar", bg="White",
                                    command=lambda:showCalendar(root, calendarFrame, framesList,
                                     months.index(monthsCombo.get())+1,int(yearsCombo.get()), today, diaryTitle))
     showCalendarButton.pack(side='left', padx=5)
 
-    editDiaryButton = tk.Button(monthYearFrame, text="Edit Diary",
+    editDiaryButton = tk.Button(monthYearFrame, text="Edit Diary", bg="White",
                                 command=lambda:editDiary(root, currentOrg, framesList, diary=diaryTitle))
-    editDiaryButton.pack(side='left')
+    editDiaryButton.pack(side='left', padx=5)
     
-    addEntryButton = tk.Button(monthYearFrame, text="Add Entry",
+    addEntryButton = tk.Button(monthYearFrame, text="Add Entry", bg="White",
                                 command=lambda:addEntry(root, currentOrg, framesList, diaryTitle))
-    addEntryButton.pack(side='left')
+    addEntryButton.pack(side='left', padx=5)
 
     showCalendar(root, calendarFrame, framesList, months.index(monthsCombo.get())+1, int(yearsCombo.get()), today, diaryTitle)
 
@@ -453,12 +443,12 @@ def showCalendar(root, calendarFrame, framesList, month, year, today, diaryTitle
     weekdays=[]
     ##have to pull out sunday and do it separately because it absolutely refuses all attempts to be first in the iteration
     weekdays.append(calendar.day_name[-1:][0])
-    dayLabel = tk.Label(calendarFrame, text=weekdays[0])
+    dayLabel = tk.Label(calendarFrame, text=weekdays[0], bg="White")
     dayLabel.grid(column=1, row=1)
     ##iterate days
     for day in calendar.day_name[:-1]: ##get a list of all weekdays
             weekdays.append(day)
-            dayLabel = tk.Label(calendarFrame, text=f'{day}')
+            dayLabel = tk.Label(calendarFrame, text=f'{day}', bg="White")
             dayLabel.grid(column=weekdays.index(day)+1, row=1)
     
     ##get the first weekday of the month and the number of days in the month, respectively
@@ -470,14 +460,14 @@ def showCalendar(root, calendarFrame, framesList, month, year, today, diaryTitle
         for day in range(1,8): ##seven days(columns) in one week
             if dayNum <= daysInMonth:
                 if blankCount < firstWeekday+1: ##add a blank label for every day before the month's first day
-                    label=tk.Label(calendarFrame, text=" "*5, bg='Light Green')
-                    label.grid(column=day, row=week+1, sticky='nsew')
+                    blankButton = tk.Button(calendarFrame, width=9, height=5, bg="White",)
+                    blankButton.grid(column=day, row=week+1, sticky='nsew')
                     blankCount+=1
                 else:
                     if dayNum==today.day and today.month==month and today.year==year: ##if it is today's date
                         dayButton = tk.Button(calendarFrame,text=dayNum, width=9, height=5, bg="Pink") ##indicate in pink
                     else:
-                        dayButton = tk.Button(calendarFrame, text=dayNum, width=9, height=5) ##otherwise, no indication
+                        dayButton = tk.Button(calendarFrame, text=dayNum, width=9, height=5, bg="White",) ##otherwise, no indication
                     dayButton.grid(column=day, row=week+1, sticky='nsew')
                     dayNum+=1
 
@@ -520,7 +510,7 @@ FROM EntryInfoPgVW WHERE diary_title = '{diaryTitle}';"""
         img=getPriorityImage(priority=item[2])
         entryButton = Button(entryFrame, text=txt, width=60, image=img, compound=tk.LEFT,
                              command=lambda:showEntryDetails(entryFrame, entryId=None))
-        entryButton.pack(fill='both', padx=5, pady=5)
+        entryButton.pack(fill='both', padx=10, pady=10)
         entryButton.image=img
         if item[3] == root.currentUser_id:
             x(entryFrame, txt, color)
@@ -619,40 +609,41 @@ press 'Go' to confirm selection.
 Then, type details in the entry
 box on the right.'''
          
-    searchLabel2=tk.Label(searchFrame, text=t, font=("Helvetica", 11))
-    searchLabel2.pack(side='left')
+    searchLabel2=tk.Label(searchFrame, text=t, font=("Helvetica", 11), bg='White', fg="Purple")
+    searchLabel2.pack(side='left', pady=10, padx=10)
 
     
     searchEntry = tk.Entry(searchFrame)
-    searchButton=tk.Button(searchFrame, text="Search", command=lambda:searchEntries(root, entryFrame, diaryTitle, criteria, searchEntry.get()))
+    searchButton=tk.Button(searchFrame, text="Search", font=("Helvetica", 11), bg='Pink', 
+                           command=lambda:searchEntries(root, entryFrame, diaryTitle, criteria, searchEntry.get()))
     
-    searchButton.pack(side='right')
+    searchButton.pack(side='right', padx=5)
     searchEntry.pack(side='right', padx=5)
 
 
 def populateSearchFrame(root, framesList, diaryTitle, currentOrg):
     srf=framesList[3]
     root.removeWidgets(srf)
-    searchFrame1 = tk.Frame(srf)
-    searchLabel1=tk.Label(searchFrame1, text="Search by:", font=("Helvetica", 11))
-    searchLabel1.pack(side='left')
+    searchFrame1 = tk.Frame(srf, bg='White')
+    searchLabel1=tk.Label(searchFrame1, text="Search by:", font=("Helvetica", 15), bg='White')
+    searchLabel1.pack(side='left', padx=10, pady=10)
 
-    searchByCombo = Combobox(searchFrame1, width=12, state="readonly")
-    searchByCombo['values']= ("No Criteria", "Date", "Time", "Duration", "Location")
+    searchByCombo = Combobox(searchFrame1, width=12, state="readonly", font=('Helvetica', 13))
+    searchByCombo['values']= ("No Criteria", "Date", "Time", "Duration", "Place")
     searchByCombo.set("No Criteria Set")
     searchByCombo.current(0)
 
-    searchFrame2 = tk.Frame(srf)
+    searchFrame2 = tk.Frame(srf, bg="Purple", highlightbackground="Pink", highlightthickness=2)
     searchHelper(root, searchFrame2, framesList[4], diaryTitle, searchByCombo.get())
     goButtonSearch = Button(searchFrame1, text="Go",
                             command=lambda:searchHelper(root, searchFrame2, framesList[4], diaryTitle, searchByCombo.get()))
 
     searchByCombo.pack(side='left', pady=10)
-    goButtonSearch.pack(side='left', padx=5)
+    goButtonSearch.pack(side='left', padx=10)
 
 
-    searchFrame1.pack(side='top')
-    searchFrame2.pack(side='top')
+    searchFrame1.pack(side='top', fill='both', pady=10)
+    searchFrame2.pack(side='top', fill='both')
 
     
 
@@ -672,13 +663,13 @@ def MainPage(root):
     optionsFrame = tk.Frame(availableSpace, bg="Purple", width=optionsFrameWidth, height=optionsFrameHeight)
     calendarFrame = tk.Frame(availableSpace, bg="Purple", width=calendarFrameWidth, height=calendarFrameHeight)
     searchEntryFrame = tk.Frame(availableSpace, bg="Purple", width=entryFrameWidth, height=entryFrameHeight)
-    searchFrame=tk.Frame(searchEntryFrame, width=entryFrameWidth, height=100)
+    searchFrame=tk.Frame(searchEntryFrame, bg="Purple", width=entryFrameWidth, height=100)
     entryFrame=tk.Frame(searchEntryFrame, bg="Purple", width=entryFrameWidth, height=entryFrameHeight)
     
     availableSpace.pack(fill='both')
     
     optionsFrame.grid(column=1, row=1, sticky='nsew')
-    calendarFrame.grid(column=2, row=1, sticky='nsew')
+    calendarFrame.grid(column=2, row=1, sticky='nsew', padx=10)
     searchEntryFrame.grid(column=3, row=1, sticky='nsew')
     searchFrame.grid(column=1, row=1, sticky='nsew')
     entryFrame.grid(column=1, row=2, sticky='nsew')
