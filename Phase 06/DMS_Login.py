@@ -1,12 +1,14 @@
 ##Team Sweet Dreams Diary Management System
 ##Created on: 11/14/2023
-##Last Updated: 11/19/2023
+##Last Updated: 11/27/2023
 
 ##The following code defines the Login page of the Diary Management System
 ##If a user is not logged in, this screen will appear.
 
 
 import tkinter as tk
+from tkinter import Canvas, PhotoImage
+from PIL import Image, ImageTk
 import DMS_MainPage
 
 def Action(root, username, password, master=None):
@@ -15,7 +17,6 @@ def Action(root, username, password, master=None):
     ##otherwise, shows a warning and allows the user to retry.
     
     user_id=verifyCredentials(root, username, password)
-    #user_id = 1 #for easy login
     if user_id:
         root.cursor.execute(f"""SELECT fullname FROM Users WHERE user_id={user_id};""")
         fullname = root.cursor.fetchone()[0]
@@ -40,34 +41,39 @@ def verifyCredentials(root, username, password):
 def Login(root):
     ##takes the RootWindow object as a parameter
     
+    calendarImage = root.getImage('calendar_clipArt.png', int(1777/10), int(1920/10))
+    
     root.setCurrentPage("Login")
-    outerFrame = tk.Frame(root.root, bg="Green")
+    outerFrame = tk.Frame(root.root, bg='Purple')
     innerFrame = tk.Frame(outerFrame, bg = "Pink", width=root.screen_width/2, height=root.screen_height/2)
 
-    label1 = tk.Label(innerFrame, text='Welcome to Sweet Dreams Diary Management System!')
-    label2 = tk.Label(innerFrame, text='Please enter your credentials to log in.')
+    imageLabel=tk.Label(innerFrame, image=calendarImage, bg='Pink')
+    imageLabel.image=calendarImage
+    label1 = tk.Label(innerFrame, text='Sweet Dreams \nDiary Management System', font=('Helvetica', 30), bg="White")
+    label2 = tk.Label(innerFrame, text='Please enter your credentials to log in.', font=('Helvetica', 18), bg='Pink')
 
     entryFrame = tk.Frame(innerFrame)
 
-    usernameLabel = tk.Label(entryFrame, text='Username')
-    passwordLabel = tk.Label(entryFrame, text='Password')
+    usernameLabel = tk.Label(entryFrame, text='Username', font=('Helvetica', 16), bg='Pink')
+    passwordLabel = tk.Label(entryFrame, text='Password', font=('Helvetica', 16), bg='Pink')
 
     userEntry = tk.Entry(entryFrame)  
     passEntry = tk.Entry(entryFrame, show="*")
 
-    loginButton = tk.Button(innerFrame, text="Log In",
+    loginButton = tk.Button(innerFrame, text="Log In", font=('Helvetica', 14), bg='White', fg="Purple",
                             command=lambda:Action(root, userEntry.get(), passEntry.get(), master=root.root))
 
     ##add widgets to screen
-    outerFrame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+    outerFrame.pack(fill=tk.BOTH, expand=True)
     innerFrame.pack(expand=True, padx=root.screen_width/10, pady=root.screen_height/10)
-    label1.pack(fill=tk.BOTH)
-    label2.pack(fill=tk.BOTH)
+    imageLabel.pack(padx=10, pady=10)
+    label1.pack(fill=tk.BOTH, padx=30)
+    label2.pack(fill=tk.BOTH, padx=10, pady=12)
     entryFrame.pack()
-    usernameLabel.grid(column=1,row=1)
-    userEntry.grid(column=2,row=1)
-    passwordLabel.grid(column=1,row=2)
-    passEntry.grid(column=2,row=2)
-    loginButton.pack()
+    usernameLabel.grid(column=1,row=1, sticky='nsew')
+    userEntry.grid(column=2,row=1, sticky='nsew')
+    passwordLabel.grid(column=1,row=2, sticky='nsew')
+    passEntry.grid(column=2,row=2, sticky='nsew')
+    loginButton.pack(padx=10, pady=15)
     
     

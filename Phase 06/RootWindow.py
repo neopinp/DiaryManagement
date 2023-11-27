@@ -1,12 +1,13 @@
 ##Team Sweet Dreams Diary Management System
 ##created on: 11/14/2023
-##last edited: 11/19/2023
+##last edited: 11/27/2023
 
 ##The following code defines the class RootWindow
 ##represents the root window for the Diary Management System tkinter application
 
 import tkinter as tk
-import mysql.connector
+from PIL import Image, ImageTk
+import mysql.connector ##import the connector to connect to our mysql database
 
 
 class RootWindow():
@@ -18,9 +19,8 @@ class RootWindow():
         self.root.geometry(f'{self.screen_width}x{self.screen_height}')
         self.root.title(title)
         self.currentUser_id = None
-        ##put this in a config.py file if we have the time!!!
-        self.connection = mysql.connector.connect(
-            host="localhost", user="root", password='root', database="teamsweetdreams_dms")
+        ##the following field is used to reference the database connection.
+        self.connection = mysql.connector.connect(host="localhost", user="root", password='root', database="teamsweetdreams_dms")
         self.cursor = self.connection.cursor()
         self.details = {
             'currentPage':None, ##keep track of what page is being shown
@@ -92,6 +92,13 @@ class RootWindow():
                 i.destroy()
         else:
             self.root.destroy()
+
+    def getImage(self, filename, w, h):
+        ##returns an image to display, resized.
+        img = Image.open(filename) # load image
+        resized_image = img.resize((w,h), Image.Resampling.LANCZOS) # resize, remove structural padding
+        new_image = ImageTk.PhotoImage(resized_image)# convert to photoimage
+        return new_image
 
     
     def run(self):
