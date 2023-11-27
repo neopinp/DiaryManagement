@@ -12,6 +12,8 @@ import datetime
 from tkinter import messagebox, PhotoImage
 from tkinter.ttk import Combobox, Button, Style
 from PIL import Image, ImageTk
+import mysql.connector
+
 
 def banner(root):
     ##creates the banner at the top of the screen and the spacers on the side
@@ -58,6 +60,114 @@ def banner(root):
 
     
     return mainFrame, aW, aH
+
+def refreshPage():
+    pass
+
+def closeWindow(root, master=None):
+    root.removeWidgets(master)
+
+def openUserSettings(root, id=None):
+    ##opens a new window that allows a user
+    ##to edit their account information
+    ##if id=None, it prompts to login.
+
+    ##create the popup
+    userSettingsWindow = RootWindow(title="User Settings")
+    userSettingsWindow.root.geometry("700x700")
+    
+    ##define the contents
+    frame1 = tk.Frame(userSettingsWindow.root, bg="")
+    
+    nameLabel=tk.Label(frame1, text="Name:")
+    nameInfo=tk.Label(frame1, text=f'{root.getCurrentUserDetails()[3]}') #Displays Name
+    
+    usernameLabel=tk.Label(frame1, text="Username:")
+    usernameInfo=tk.Label(frame1, text=f'{root.getCurrentUserDetails()[4]}') # Displays Username
+
+    passLabel=tk.Label(frame1, text="Password:")
+    passInfo=tk.Label(frame1, text="*********")
+
+    bdayLabel=tk.Label(frame1, text="Birthday:")
+    orgsLabel=tk.Label(frame1, text="Organizations:")
+
+
+    nameEntry=tk.Entry(frame1)
+    
+    ##only passing the window to Save,
+    ##so master of .removeWidgets(master) is None, which will close the whole window.
+    backButton=tk.Button(frame1, text='<- Back', command=lambda:closeWindow(userSettingsWindow))
+    #editButton=tk.Button(frame1, text='Edit Information', command=lambda:editUserSettings(userSettingsWindow), command=lambda:closeWindow(userSettingsWindow))
+    editButton=tk.Button(frame1, text='Edit Information', command=lambda: [editUserSettings(userSettingsWindow), closeWindow(userSettingsWindow)])
+
+
+    ##Add the contents to the window
+    frame1.pack()
+    backButton.grid(column=1, row=1)
+    editButton.grid(column=3, row=1)
+    nameLabel.grid(column=1, row=3)
+
+    usernameLabel.grid(column=1, row=4)
+    passLabel.grid(column=1, row=5)
+    bdayLabel.grid(column=1, row=6)
+    orgsLabel.grid(column=1, row=7)
+    
+    # nameEntry.grid(column=2, row=3)
+    
+    nameInfo.grid(column=2, row=3)
+    usernameInfo.grid(column=2, row=4)
+    
+    userSettingsWindow.run() ##open the window
+
+def editUserSettings(id=None):
+    ##opens a new window that allows a user
+    ##to edit their account information
+    ##if id=None, it prompts to login.
+
+    ##create the popup
+    editUserSettingsWindow = RootWindow(title="Edit User Settings")
+    editUserSettingsWindow.root.geometry("700x700")
+    
+    ##define the contents
+    frame1 = tk.Frame(editUserSettingsWindow.root, bg="")
+    
+    nameLabel=tk.Label(frame1, text="Name:")
+    usernameLabel=tk.Label(frame1, text="Username:")
+    passLabel=tk.Label(frame1, text="Password:")
+    bdayLabel=tk.Label(frame1, text="Birthday:")
+    orgsLabel=tk.Label(frame1, text="Organizations:")
+
+
+    nameEntry=tk.Entry(frame1)
+    usernameEntry=tk.Entry(frame1)
+    passEntry=tk.Entry(frame1)
+    bdayEntry=tk.Entry(frame1)
+    
+    ##only passing the window to Save,
+    ##so master of .removeWidgets(master) is None, which will close the whole window.
+    # [fun1(), fun2()]
+    # saveButton=tk.Button(frame1, text='Save Changes', command=lambda:Save(editUserSettingsWindow), command=lambda:openUserSettings(editUserSettingsWindow))
+    saveButton=tk.Button(frame1, text='Save Changes', command=lambda: [Save(editUserSettingsWindow), openUserSettings(editUserSettingsWindow)])
+
+    backButton=tk.Button(frame1, text='<- Back', command=lambda:closeWindow(editUserSettingsWindow))
+
+    ##Add the contents to the window
+    frame1.pack()
+    backButton.grid(column=1, row=1)
+    nameLabel.grid(column=1, row=3)
+    usernameLabel.grid(column=1, row=4)
+    passLabel.grid(column=1, row=5)
+    bdayLabel.grid(column=1, row=6)
+    orgsLabel.grid(column=1, row=7)
+    
+    nameEntry.grid(column=2, row=3)
+    usernameEntry.grid(column=2, row=4)
+    passEntry.grid(column=2, row=5)
+    bdayEntry.grid(column=2, row=6)
+    # orgsEntry.grid(column=2, row=7)
+    saveButton.grid(column=3, row=8)
+    
+    editUserSettingsWindow.run() ##open the window
 
 def openSettings(root):
     ##opens a new window that allows a user
@@ -183,8 +293,15 @@ def populateOptionsFrame(root, framesList):
     orgsCombo.pack(padx=10, pady=10)
 
         
-    ##get all diaries a user has access to and the organization it is associated with(title and id)   
-    userDiaryData=root.getUserDiaryData()
+    ##get all diaries a user has access to and the organization it is associated with(title and id)
+    root.cursor.execute(f"""SELECT title, O.org_name FROM Users U
+JOIN UserDiaries UD ON UD.user_id = U.user_id
+JOIN Diaries D ON D.diary_id = UD.diary_id
+JOIN Organizations O ON O.org_id = D.diaryOrg_id
+WHERE U.user_id={root.currentUser_id}
+ORDER BY D.diary_id;""")
+    
+    userDiaryData=root.cursor.fetchall()
 
     showDiariesButton = tk.Button(comboFrame, text='Show Diaries', font=('Helvetica', 12),
                                   bg="Pink", command=lambda:showOrgDiaries(root, framesList, orgsCombo.get()))
@@ -197,6 +314,7 @@ def populateOptionsFrame(root, framesList):
 
     showOrgDiaries(root, framesList, orgsCombo.get())
 
+    createDiary(root, calendarFrame, entryFrame, orgsCombo.get())
 
 def EditOrg(id=None):
     ##opens a new window that allows a user
@@ -553,6 +671,22 @@ def showEntryDetails(entryFrame, entryId=None):
     
     window.run() ##open the window
 
+def iterateEntries(root, entryFrame, diaryEntryData):
+    for i in range(1,5):
+        startTime=datetime.datetime.strftime(datetime.datetime.now(), "%y/%m/%d %I:%M %p")
+        txt=f"Entry {i}\n{startTime}"
+        img= getPriorityImage(priority=1)
+        entryButton = Button(entryFrame, text=txt, width=60, image=img, compound=tk.LEFT, command=lambda:showEntryDetails(frame, entryId=None))
+        entryButton.pack(fill='both', padx=5, pady=5)
+        entryButton.image=img
+        
+def getPriorityImage(priority=None):
+    ##returns an image to display next to an entry based on the entry's priority
+    if priority:
+        img = Image.open("exclamation.png") # load image
+        resized_image = img.resize((25,25), Image.Resampling.LANCZOS) # resize, remove structural padding
+        new_image = ImageTk.PhotoImage(resized_image)# convert to photoimage
+        return new_image
 
 
 
