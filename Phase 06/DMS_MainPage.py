@@ -1,6 +1,6 @@
 ##Team Sweet Dreams Diary Management System
 ##created on: 11/15/23
-##last updated: 11/27/2023
+##last updated: 11/30/2023
 
 ##The following code defines the main screen for the Diary Management System.
 ##If a user is logged in successfully, this screen will appear.
@@ -12,8 +12,6 @@ import datetime
 from tkinter import messagebox, PhotoImage
 from tkinter.ttk import Combobox, Button, Style
 from PIL import Image, ImageTk
-import mysql.connector
-
 
 def banner(root):
     ##creates the banner at the top of the screen and the spacers on the side
@@ -40,9 +38,18 @@ def banner(root):
     nameLabel = tk.Label(frame112, text=f'{root.getCurrentUserDetails()[3]}', font=('Helvetica', 14), bg='Pink')
     roleLabel = tk.Label(frame113, text=f'{root.getCurrentUserRoleDetails()[1]}', font=('Helvetica', 11), bg='Pink')
 
-    img=root.getImage("gear.png", topH-5, topH-5)
-    settingsButton = tk.Button(frame114, image=img, command=lambda:openSettings(root))
-    settingsButton.image=img
+    ##determine which button to present
+    if root.getCurrentPage()=="Main":
+        img=root.getImage("gear.png", topH-5, topH-5)
+        settingsButton = tk.Button(frame114, image=img, command=lambda:openSettings(root))
+        settingsButton.image=img
+        settingsButton.pack(padx=15, pady=10)
+    elif root.getCurrentPage()=="Settings":
+        img=root.getImage("redX.png", topH-5, topH-5)
+        backButton = tk.Button(frame114, image=img, command=lambda:MainPage(root))
+        backButton.image=img
+        backButton.pack(padx=15, pady=10)
+    
 
     topLabel = tk.Label(topBanner, text="Diary Management System", font=("Helvetica", 35), bg="Pink", fg="Black")
 
@@ -56,130 +63,27 @@ def banner(root):
     frame113.pack(fill="both")
     nameLabel.pack(padx=10, pady=12, fill='both')
     roleLabel.pack(padx=10, fill='both', pady=10)
-    settingsButton.pack(padx=15, pady=10)
 
     
     return mainFrame, aW, aH
 
-def refreshPage():
-    pass
-
-def closeWindow(root, master=None):
-    root.removeWidgets(master)
-
-def openUserSettings(root, id=None):
-    ##opens a new window that allows a user
-    ##to edit their account information
-    ##if id=None, it prompts to login.
-
-    ##create the popup
-    userSettingsWindow = RootWindow(title="User Settings")
-    userSettingsWindow.root.geometry("700x700")
-    
-    ##define the contents
-    frame1 = tk.Frame(userSettingsWindow.root, bg="")
-    
-    nameLabel=tk.Label(frame1, text="Name:")
-    nameInfo=tk.Label(frame1, text=f'{root.getCurrentUserDetails()[3]}') #Displays Name
-    
-    usernameLabel=tk.Label(frame1, text="Username:")
-    usernameInfo=tk.Label(frame1, text=f'{root.getCurrentUserDetails()[4]}') # Displays Username
-
-    passLabel=tk.Label(frame1, text="Password:")
-    passInfo=tk.Label(frame1, text="*********")
-
-    bdayLabel=tk.Label(frame1, text="Birthday:")
-    orgsLabel=tk.Label(frame1, text="Organizations:")
-
-
-    nameEntry=tk.Entry(frame1)
-    
-    ##only passing the window to Save,
-    ##so master of .removeWidgets(master) is None, which will close the whole window.
-    backButton=tk.Button(frame1, text='<- Back', command=lambda:closeWindow(userSettingsWindow))
-    #editButton=tk.Button(frame1, text='Edit Information', command=lambda:editUserSettings(userSettingsWindow), command=lambda:closeWindow(userSettingsWindow))
-    editButton=tk.Button(frame1, text='Edit Information', command=lambda: [editUserSettings(userSettingsWindow), closeWindow(userSettingsWindow)])
-
-
-    ##Add the contents to the window
-    frame1.pack()
-    backButton.grid(column=1, row=1)
-    editButton.grid(column=3, row=1)
-    nameLabel.grid(column=1, row=3)
-
-    usernameLabel.grid(column=1, row=4)
-    passLabel.grid(column=1, row=5)
-    bdayLabel.grid(column=1, row=6)
-    orgsLabel.grid(column=1, row=7)
-    
-    # nameEntry.grid(column=2, row=3)
-    
-    nameInfo.grid(column=2, row=3)
-    usernameInfo.grid(column=2, row=4)
-    
-    userSettingsWindow.run() ##open the window
-
-def editUserSettings(id=None):
-    ##opens a new window that allows a user
-    ##to edit their account information
-    ##if id=None, it prompts to login.
-
-    ##create the popup
-    editUserSettingsWindow = RootWindow(title="Edit User Settings")
-    editUserSettingsWindow.root.geometry("700x700")
-    
-    ##define the contents
-    frame1 = tk.Frame(editUserSettingsWindow.root, bg="")
-    
-    nameLabel=tk.Label(frame1, text="Name:")
-    usernameLabel=tk.Label(frame1, text="Username:")
-    passLabel=tk.Label(frame1, text="Password:")
-    bdayLabel=tk.Label(frame1, text="Birthday:")
-    orgsLabel=tk.Label(frame1, text="Organizations:")
-
-
-    nameEntry=tk.Entry(frame1)
-    usernameEntry=tk.Entry(frame1)
-    passEntry=tk.Entry(frame1)
-    bdayEntry=tk.Entry(frame1)
-    
-    ##only passing the window to Save,
-    ##so master of .removeWidgets(master) is None, which will close the whole window.
-    # [fun1(), fun2()]
-    # saveButton=tk.Button(frame1, text='Save Changes', command=lambda:Save(editUserSettingsWindow), command=lambda:openUserSettings(editUserSettingsWindow))
-    saveButton=tk.Button(frame1, text='Save Changes', command=lambda: [Save(editUserSettingsWindow), openUserSettings(editUserSettingsWindow)])
-
-    backButton=tk.Button(frame1, text='<- Back', command=lambda:closeWindow(editUserSettingsWindow))
-
-    ##Add the contents to the window
-    frame1.pack()
-    backButton.grid(column=1, row=1)
-    nameLabel.grid(column=1, row=3)
-    usernameLabel.grid(column=1, row=4)
-    passLabel.grid(column=1, row=5)
-    bdayLabel.grid(column=1, row=6)
-    orgsLabel.grid(column=1, row=7)
-    
-    nameEntry.grid(column=2, row=3)
-    usernameEntry.grid(column=2, row=4)
-    passEntry.grid(column=2, row=5)
-    bdayEntry.grid(column=2, row=6)
-    # orgsEntry.grid(column=2, row=7)
-    saveButton.grid(column=3, row=8)
-    
-    editUserSettingsWindow.run() ##open the window
-
 def openSettings(root):
     ##opens a new window that allows a user
     ##to edit their account information
-    ##if id=None, it prompts to login.
-
-    ##create the popup
-    userSettingsWindow = RootWindow(title="User Settings")
-    userSettingsWindow.root.geometry("700x700")
+            
+    root.removeWidgets(root.root)
+    root.setCurrentPage("Settings")
+    availableSpace, aW, aH = banner(root) ## display the banner and borders of the main page
     
     ##define the contents
-    frame1 = tk.Frame(userSettingsWindow.root, bg="")
+    frame1 = tk.Frame(availableSpace, bg='White')
+    frame2 = tk.Frame(availableSpace, bg='Purple')
+    frame3 = tk.Frame(availableSpace, bg='Purple')
+
+    availableSpace.pack(fill='both')
+    frame1.pack(side='left', fill='both')
+    frame2.pack(fill='both')
+    frame3.pack(side='right', fill='both')
     
     nameLabel=tk.Label(frame1, text="Name:")
     nameInfo=tk.Label(frame1, text=f'{root.getCurrentUserDetails()[3]}') #Displays Name
@@ -190,35 +94,66 @@ def openSettings(root):
     passLabel=tk.Label(frame1, text="Password:")
     passInfo=tk.Label(frame1, text="*********")
 
-    orgsLabel=tk.Label(frame1, text="Organizations:")
-
+    orgsLabel=tk.Label(frame1, text="Your Organizations:")
 
     nameEntry=tk.Entry(frame1)
-    
-    ##only passing the window to Save,
-    ##so master of .removeWidgets(master) is None, which will close the whole window.
-    backButton=tk.Button(frame1, text='<- Back', command=lambda:userSettingsWindow.removeWidgets())
-    #editButton=tk.Button(frame1, text='Edit Information', command=lambda:editUserSettings(userSettingsWindow), command=lambda:closeWindow(userSettingsWindow))
-    editButton=tk.Button(frame1, text='Edit Information', command=lambda: [editUserSettings(userSettingsWindow), closeWindow(userSettingsWindow)])
 
+    editButton=tk.Button(frame1, text='Edit Information', command=lambda: editUserSettings(mainFrame))
+
+    logoutButton=tk.Button(frame3, text='Log Out', font=('Helvetica', 14), command=lambda:logout(root))
+
+    aboutUsButton=tk.Button(frame3, text='About Us', font=('Helvetica', 14), command=lambda:showAboutUs(root, frame1))
 
     ##Add the contents to the window
-    frame1.pack()
-    backButton.grid(column=1, row=1)
-    editButton.grid(column=3, row=1)
-    nameLabel.grid(column=1, row=3)
-
-    usernameLabel.grid(column=1, row=4)
-    passLabel.grid(column=1, row=5)
-    orgsLabel.grid(column=1, row=7)
     
-    nameInfo.grid(column=2, row=3)
-    usernameInfo.grid(column=2, row=4)
-    
-    userSettingsWindow.run() ##open the window
+    #editButton.grid(column=3, row=1)
+    nameLabel.grid(column=1, row=1)
 
-def editUserSettings(userSettingsWindow):
+    usernameLabel.grid(column=1, row=2)
+    #passLabel.grid(column=1, row=5)
+    orgsLabel.grid(column=1, row=3)
+    
+    nameInfo.grid(column=2, row=1)
+    usernameInfo.grid(column=2, row=2)
+
+    logoutButton.pack(pady=10)
+    aboutUsButton.pack(pady=10)
+
+def editUserSettings(mainFrame):
     pass
+
+def logout(root):
+    answer=tk.messagebox.askyesno('Log Out', f'Are you sure you want to log out?')
+    if answer:
+        root.currenUser_id=None
+        root.removeWidgets()
+    
+
+def showAboutUs(root, frame):
+    root.removeWidgets(root.root)
+    
+    lab=tk.Label(root.root, font=('Helvetica', 16), bg="Purple", fg='Light Blue',
+                 text="""Team Sweet Dreams
+    ----------------------------------------------------
+    We are a group of students at Marist College creating this project
+    for Dr. Reza Sadeghi's Fall 2023 Database Management class.
+
+    Meet the Team:
+    Evan Spillane..........Evan.Spillane1@marist.edu
+    Abel Scholl............Anna.Scholl1@marist.edu
+    Connor Fleischman......Connor.Fleischman1@marist.edu
+    Lilli Cartiera.........Lilliana.Cartiera1@marist.edu 
+    Neo Pi.................Neo.Pi1@marist.edu
+
+    Special Thanks to Dr. Reza Sadeghi""")
+    
+    img=root.getImage("Marist_College_Seal.png", int(640/2), int(640/2))
+    sealLabel = tk.Label(root.root, image=img, bg='White')
+    sealLabel.image=img
+    backButton=tk.Button(root.root, text='<- Back', command=lambda:openSettings(root))
+    backButton.pack()
+    lab.pack(padx=10, pady=10)
+    sealLabel.pack(padx=10, pady=10)
 
 def Save(root, master=None):
     ##this function will update the database with the new information.
@@ -293,15 +228,8 @@ def populateOptionsFrame(root, framesList):
     orgsCombo.pack(padx=10, pady=10)
 
         
-    ##get all diaries a user has access to and the organization it is associated with(title and id)
-    root.cursor.execute(f"""SELECT title, O.org_name FROM Users U
-JOIN UserDiaries UD ON UD.user_id = U.user_id
-JOIN Diaries D ON D.diary_id = UD.diary_id
-JOIN Organizations O ON O.org_id = D.diaryOrg_id
-WHERE U.user_id={root.currentUser_id}
-ORDER BY D.diary_id;""")
-    
-    userDiaryData=root.cursor.fetchall()
+    ##get all diaries a user has access to and the organization it is associated with(title and id)   
+    userDiaryData=root.getUserDiaryData()
 
     showDiariesButton = tk.Button(comboFrame, text='Show Diaries', font=('Helvetica', 12),
                                   bg="Pink", command=lambda:showOrgDiaries(root, framesList, orgsCombo.get()))
@@ -314,7 +242,6 @@ ORDER BY D.diary_id;""")
 
     showOrgDiaries(root, framesList, orgsCombo.get())
 
-    createDiary(root, calendarFrame, entryFrame, orgsCombo.get())
 
 def EditOrg(id=None):
     ##opens a new window that allows a user
@@ -415,8 +342,10 @@ def editDiary(root, currentOrg, framesList, diary=None):
     ##if diary=None, it prompts to create a new diary.
 
     ##create the popup
-    window = RootWindow(title="Edit Diary")
-    window.root.geometry("750x150")
+    t='Edit' if diary else 'Add'
+    window = RootWindow(title=f'{t} Diary')
+    window.root.geometry(f"{int(root.screen_width*0.8)}x{int(root.screen_height/2)}")
+    window.root['bg']='Pink'
     
     ##define the contents
     frame1 = tk.Frame(window.root, bg="Pink")
@@ -591,8 +520,151 @@ def showCalendar(root, calendarFrame, framesList, month, year, today, diaryTitle
 
                     
 def addEntry(root, currentOrg, framesList, diaryTitle):
-    pass
+    ##opens a new window that allows a user
+    ##to add a new Entry to a diary
+    ##if diary=None, it prompts to create a new diary.
 
+    ##create the popup
+    window = RootWindow(title="Add Entry")
+    window.root.geometry(f"{int(root.screen_width*0.8)}x{int(root.screen_height*0.8)}")
+    window.root['bg']='Pink'
+    
+    ##define the contents
+    frame1 = tk.Frame(window.root, bg="Pink")
+    frame2 = tk.Frame(window.root, bg="Pink")
+    frame3 = tk.Frame(window.root, bg="Pink")
+    locationFrame=tk.Frame(window.root, bg="Pink")
+    locFrame1=tk.Frame(locationFrame, bg="Pink")
+    locFrame2=tk.Frame(locationFrame, bg="Pink")
+    
+    frame4 = tk.Frame(window.root, bg="Pink")
+    frame5 = tk.Frame(window.root, bg="Pink") ##used to show input issues
+    
+    titleLabel=tk.Label(frame1, text="Entry title:", font=('Helvetica',14), bg="Pink")
+    titleEntry=tk.Entry(frame1, font=('Helvetica',12))
+    
+    descriptionLabel=tk.Label(frame2, text="Description:", font=('Helvetica',14), bg="Pink")
+    descriptionEntry=tk.Entry(frame2, width=100, font=('Helvetica',12))
+
+    startTimeLabel=tk.Label(frame3, text="Start Time:", font=('Helvetica',14), bg="Pink")
+    startTimeEntry=tk.Entry(frame3, font=('Helvetica',12))
+    
+    
+    endTimeLabel=tk.Label(frame3, text="End Time:", font=('Helvetica',14), bg="Pink")
+    endTimeEntry=tk.Entry(frame3, font=('Helvetica',12))
+
+    priorityLabel=tk.Label(frame3, text="Priority:", font=('Helvetica',14), bg="Pink")
+    priorityCombo=Combobox(frame3, font=('Helvetica',12), state='readonly')
+    priorityCombo['values']= ("None", "Low", "Medium", "High")
+    priorityCombo.current(0)
+
+    entryTypeLabel=tk.Label(frame3, text="Type:", font=('Helvetica',14), bg="Pink")
+    entryTypeCombo=Combobox(frame3, font=('Helvetica',12), state='readonly')
+    entryTypeCombo['values']= ('Meeting', 'Note')#get list of all entry types
+    entryTypeCombo.current(0)
+    
+
+    locationLabel=tk.Label(locFrame1, text="Location:", font=('Helvetica',14), bg="Pink")
+    add1Label=tk.Label(locFrame1, text="Address Line 1:", font=('Helvetica',14), bg="Pink")
+    add1Entry=tk.Entry(locFrame1, font=('Helvetica',12), width=100)
+    add2Label=tk.Label(locFrame1, text="Address Line 2:", font=('Helvetica',14), bg="Pink")
+    add2Entry=tk.Entry(locFrame1, font=('Helvetica',12), width=100)
+    cityLabel=tk.Label(locFrame2, text="City:", font=('Helvetica',14), bg="Pink")
+    cityEntry=tk.Entry(locFrame2, font=('Helvetica',12), width=20)
+    stateLabel=tk.Label(locFrame2, text="State:", font=('Helvetica',14), bg="Pink")
+    stateCombo=Combobox(locFrame2, font=('Helvetica',12))
+    ##stateCombo['values']= ()
+    zipLabel=tk.Label(locFrame2, text="Zipcode:", font=('Helvetica',14), bg="Pink")
+    zipEntry=tk.Entry(locFrame2, font=('Helvetica',12), width=5)
+
+    
+    cancelButton=tk.Button(frame4, text='Cancel', command=lambda:window.root.destroy(), font=('Helvetica',12), bg="Light Blue")
+
+    locInfo=[add1Entry, add2Entry, cityEntry, stateCombo, zipEntry]
+    info=[diaryTitle, titleEntry, startTimeEntry, endTimeEntry, descriptionEntry, priorityCombo, locInfo]
+    
+    saveButton=tk.Button(frame4, text='Save',  font=('Helvetica',12), bg="Green", fg="White")
+    saveButton.config(command=lambda cO=currentOrg,
+                    saveButton=saveButton:saveEntry(root, window, frame5, info, framesList))
+
+    ##Add the contents to the window
+    frame1.pack(fill='both')
+    frame2.pack(fill='both')
+    frame3.pack(fill='both')
+    locationFrame.pack(fill='both')
+    locFrame1.pack(fill='both')
+    locFrame2.pack(fill='both')
+    frame4.pack(side='bottom', fill='both')
+    frame5.pack(side='bottom', fill='both', pady=10)
+    titleLabel.grid(column=1, row=1, padx=10, pady=10)
+    titleEntry.grid(column=2, row=1, padx=10, pady=10)
+    descriptionLabel.grid(column=1, row=2, padx=10, pady=10)
+    descriptionEntry.grid(column=2, row=2, padx=10, pady=10)
+    startTimeLabel.grid(column=1, row=3, padx=10, pady=10)
+    startTimeEntry.grid(column=2, row=3, padx=10, pady=10)
+    endTimeLabel.grid(column=3, row=3, padx=10, pady=10)
+    endTimeEntry.grid(column=4, row=3, padx=10, pady=10)
+    priorityLabel.grid(column=1, row=5, padx=10, pady=10)
+    priorityCombo.grid(column=2, row=5, padx=10, pady=10)
+    
+    locationLabel.grid(column=1, row=1, padx=10, pady=10)
+    add1Label.grid(column=1, row=2, padx=10, pady=10)
+    add1Entry.grid(column=2, row=2, padx=10, pady=10)
+    add2Label.grid(column=1, row=3, padx=10, pady=10)
+    add2Entry.grid(column=2, row=3, padx=10, pady=10)
+    cityLabel.grid(column=1, row=1, padx=10, pady=10)
+    cityEntry.grid(column=2, row=1, padx=10, pady=10)
+    stateLabel.grid(column=3, row=1, padx=10, pady=10)
+    stateCombo.grid(column=4, row=1, padx=10, pady=10)
+    zipLabel.grid(column=5, row=1, padx=10, pady=10)
+    zipEntry.grid(column=6, row=1, padx=10, pady=10)
+    
+    saveButton.pack(side='right', padx=10, pady=10, fill='both')
+    cancelButton.pack(side='right', padx=10, pady=10, fill='both')
+
+
+    window.run() ##open the window
+
+def saveEntry(root, window, frame, info, framesList):
+    ##this function checks the input for errors, then saves the information to the database
+    ##or gives a warning message if errors are present.
+
+    for value in info[1:4]:
+        if not value.get() and info.index(value)<=3: ##if title, start time, or end time is not defined
+            root.removeWidgets(frame)
+            errorLabel = tk.Label(frame, text="Each entry must have a title, start time, and end time.", fg="Red")
+            errorLabel.pack(pady=10)
+            return
+        
+    try:
+        root.cursor.execute(f"SELECT diary_id, diaryOrg_id FROM diaryinfopgvw WHERE title='{info[0]}';")
+    except Exception as e:
+        print(f"Save Entry Get DiaryId, OrgId:\n{e}\n{info[0]}")
+        return
+    
+    match(info[5].get()):
+        case 'None': priority=0
+        case 'Low': priority=1
+        case 'Medium': priority=2
+        case 'High': priority=3
+        case _: priority=0
+    diary_id, org_id = root.cursor.fetchall()[0]
+    entryType_id=1
+    loc_id='NULL'
+
+    try:
+        root.cursor.execute(f"""INSERT INTO teamsweetdreams_dms.entries
+(entry_title, start_time, end_time, description, priority, entryType_id, entryOwner_id, entryOrg_id, entryDiary_id, location_id)
+VALUES ("{info[1].get()}", "{info[2].get()}", "{info[3].get()}", "{info[4].get()}", {priority}, {1}, {root.currentUser_id}, {org_id}, {diary_id}, {loc_id})""")
+        root.connection.commit()
+
+    except Exception as e:
+        print(f"save Entry insert into Entries: {e}")
+
+    iterateEntries(root, framesList[4], info[0])
+
+    window.removeWidgets()
+                
 
 
 def iterateEntries(root, entryFrame, diaryTitle, query=None):
@@ -605,13 +677,12 @@ def iterateEntries(root, entryFrame, diaryTitle, query=None):
                     style = Style().configure(f"{role[1]}.TButton",
                                               foreground=f"#{color}")##color is the role color
                     i['style'] = f"{role[1]}.TButton"
-
     #reset the frame                
     root.removeWidgets(entryFrame)
 
     if not query:
         query = f"""SELECT entry_title, start_time, priority, entryOwner_id
-FROM EntryInfoPgVW WHERE diary_title = '{diaryTitle}';"""
+FROM EntryInfoPgVW WHERE diary_title = '{diaryTitle}'ORDER BY priority DESC;"""
 
     root.cursor.execute(query)
     entries = root.cursor.fetchall()
@@ -671,22 +742,6 @@ def showEntryDetails(entryFrame, entryId=None):
     
     window.run() ##open the window
 
-def iterateEntries(root, entryFrame, diaryEntryData):
-    for i in range(1,5):
-        startTime=datetime.datetime.strftime(datetime.datetime.now(), "%y/%m/%d %I:%M %p")
-        txt=f"Entry {i}\n{startTime}"
-        img= getPriorityImage(priority=1)
-        entryButton = Button(entryFrame, text=txt, width=60, image=img, compound=tk.LEFT, command=lambda:showEntryDetails(frame, entryId=None))
-        entryButton.pack(fill='both', padx=5, pady=5)
-        entryButton.image=img
-        
-def getPriorityImage(priority=None):
-    ##returns an image to display next to an entry based on the entry's priority
-    if priority:
-        img = Image.open("exclamation.png") # load image
-        resized_image = img.resize((25,25), Image.Resampling.LANCZOS) # resize, remove structural padding
-        new_image = ImageTk.PhotoImage(resized_image)# convert to photoimage
-        return new_image
 
 
 
@@ -783,9 +838,12 @@ def populateSearchFrame(root, framesList, diaryTitle, currentOrg):
 
 
 def MainPage(root):
+    root.removeWidgets(root.root)
     root.root.config(bg='Purple') ##set the main window's background to purple
     ##takes the RootWindow object as a parameter
     ##controls the layout for the whole main window
+
+    root.setCurrentPage("Main")
 
     availableSpace, aW, aH = banner(root) ## display the banner and borders of the main page
 
