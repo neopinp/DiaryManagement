@@ -1,6 +1,6 @@
 ##Team Sweet Dreams Diary Management System
 ##created on: 11/15/23
-##last updated: 11/30/2023
+##last updated: 1/2/2023
 
 ##The following code defines the main screen for the Diary Management System.
 ##If a user is logged in successfully, this screen will appear.
@@ -12,6 +12,7 @@ import datetime
 from tkinter import messagebox, PhotoImage
 from tkinter.ttk import Combobox, Button, Style
 from PIL import Image, ImageTk
+import DMS_Login
 
 def banner(root):
     ##creates the banner at the top of the screen and the spacers on the side
@@ -126,7 +127,8 @@ def logout(root):
     answer=tk.messagebox.askyesno('Log Out', f'Are you sure you want to log out?')
     if answer:
         root.currenUser_id=None
-        root.removeWidgets()
+        root.removeWidgets(root.root)
+        DMS_Login.Login(root)
     
 
 def showAboutUs(root, frame):
@@ -220,7 +222,7 @@ def populateOptionsFrame(root, framesList):
 
     orgs=[]
     for item in userOrgData:
-        orgs.append(item[-1]) ##append organization name
+        orgs.append(item[1]) ##append organization name
 
     orgsCombo = Combobox(comboFrame, font=('Helvetica', 18), state="readonly")
     orgsCombo['values']=orgs
@@ -292,14 +294,14 @@ def showOrgDiaries(root, framesList, currentOrg, returnTitle=None):
     createDiary(root, framesList, currentOrg, diaryTitle=returnTitle) 
 
 
-def saveDiary(root, window, frame, title, subject, currentOrg, framesList, action, oldTitle=None):
+def saveDiary(root, window, frame, title, subject, currentOrg, membersTextBox, framesList, userMap, action, oldTitle=None):
     if not title:
-        errorLabel = tk.Label(frame, text="Please enter a title.")
-        errorLabel.grid(column=2, row=4, padx=10, pady=15)
+        errorLabel = tk.Label(frame, text="Please enter a title.", bg="Pink", fg="Red")
+        errorLabel.pack(side='bottom', padx=10, pady=15)
         return
     now = datetime.datetime.now().strftime('%y-%m-%d %H:%M:%S')
 
-    if action == 'new':
+    if action == 'new': ##create a new diary
         try:
             root.cursor.execute(f"SELECT org_id FROM Organizations WHERE org_name = '{currentOrg}';")
             org_id = root.cursor.fetchall()[0][0]
@@ -313,7 +315,7 @@ def saveDiary(root, window, frame, title, subject, currentOrg, framesList, actio
         except Exception as e:
             print("save new Diary: ", e)
 
-    elif action == 'edit':
+    elif action == 'edit': ##edit the existing diary
         try:
             root.cursor.execute(f"SELECT diary_id FROM Diaries WHERE title='{oldTitle}';")
             diary_id = root.cursor.fetchall()[0][0]
@@ -323,17 +325,69 @@ SET title="{title}", last_updated="{now}", subject="{subject}" WHERE diary_id='{
         except Exception as e:
             print("save edit diary: ", e)
 
-    elif action == 'delete':
+    elif action == 'delete': ##delete the existing diary
         try:
             root.cursor.execute(f"SELECT diary_id FROM Diaries WHERE title='{oldTitle}';")
             diary_id = root.cursor.fetchall()[0][0]
             root.cursor.execute(f"""DELETE FROM Diaries WHERE diary_id='{int(diary_id)}';""")
             root.connection.commit()
         except Exception as e:
-            print("save delete diary: ", e)
+            print("save delete diary:\n", e)
+
+    membersList = membersTextBox.get(1.0, "end - 1 lines").rstrip().split("\n")
+    if membersList:
+        addingList=[]
+        for u in userMap:
+            for member in membersList:
+                if member==u['name'] and (u['user_id'], u['diary_id']) not in addingList and u['title']==title:
+                    addingList.append((u['user_id'], u['diary_id']))
+                    print(f"{addingList}")
+
+        for item in addingList:
+            print(item)
+##            try:
+##                ##Need to perform an update between what the addition looks like and what the existing UserDiaries looks like.
+##                root.cursor.execute(f"""INSERT INTO UserDiaries (user_id, diary_id) VALUES ({item[0]}, ({item[1]});""")
+##                root.connection.commit()
+##            except Exception as e:
+##                print(f"Insert Into UserDiaries:\n{e}")
 
     window.removeWidgets(master=None) ##close the window
     showOrgDiaries(root, framesList, currentOrg, title)
+
+
+
+def manageDiaryMembers(root, window, frameList, user, userMap, action=None):
+    ##adds or removes a selected user within the organization
+    ##to the list of users to be added to the diary.
+    
+    lis=frameList[0].winfo_children()
+    for widget in lis:
+        if isinstance(widget, tk.Text):
+            widget['state']='normal'
+            found=False
+            for i in userMap:
+                if user==i['name']:
+                    found=True
+                    if action=="add":
+                        if user not in widget.get(1.0, "end-1c"):
+                            widget.insert(tk.END, f"{user}\n")
+                            root.removeWidgets(frameList[1])
+                    elif action=="remove":
+                        if user in widget.get(1.0, "end-1c"):
+                            textList=widget.get(1.0, "end - 1 lines").rstrip().split("\n")
+                            if user in textList:
+                                textList.remove(user)
+                                widget.delete(1.0, tk.END)
+                            for member in textList:
+                                manageDiaryMembers(root, window, frameList, member, userMap, action="add")
+            widget['state']='disabled'
+            if not found:
+                root.removeWidgets(frameList[1])
+                errorLabel = tk.Label(frameList[1], text=f"user {user} does not exist.", bg="Pink", fg="Red")
+                errorLabel.pack(side='bottom', padx=10, pady=15)
+                return
+                
 
 
 def editDiary(root, currentOrg, framesList, diary=None):
@@ -344,39 +398,75 @@ def editDiary(root, currentOrg, framesList, diary=None):
     ##create the popup
     t='Edit' if diary else 'Add'
     window = RootWindow(title=f'{t} Diary')
-    window.root.geometry(f"{int(root.screen_width*0.8)}x{int(root.screen_height/2)}")
+    window.root.geometry(f"{int(root.screen_width*0.8)}x{int(root.screen_height*0.8)}")
     window.root['bg']='Pink'
     
     ##define the contents
     frame1 = tk.Frame(window.root, bg="Pink")
     frame2 = tk.Frame(window.root, bg="Pink")
     frame3 = tk.Frame(window.root, bg="Pink")
+    frame4 = tk.Frame(window.root, bg="Pink")
+    errorFrame = tk.Frame(window.root, bg="Pink")
     titleLabel=tk.Label(frame1, text="Diary title:", font=('Helvetica',14), bg="Pink")
     titleEntry=tk.Entry(frame1, font=('Helvetica',12))
     subjectLabel=tk.Label(frame2, text="Subject:", font=('Helvetica',14), bg="Pink")
     subjectEntry=tk.Entry(frame2, width=100, font=('Helvetica',12))
+
+    membersLabel=tk.Label(frame4, text="Add or Remove Members:", font=('Helvetica',14), bg="Pink")
+    membersCombo=Combobox(frame4, font=('Helvetica', 12))
+    membersTextBox=tk.Text(frame4, font=('Helvetica', 12), width=30, height=10)
+
+    userMap=root.getOrgUserInfo(currentOrg)
+    availableMembers=[]
+
+    try:
+        for i in userMap:
+            if i['name'] not in availableMembers:
+                availableMembers.append(i['name'])
+        membersCombo['values']=availableMembers
+        membersCombo.set("Choose a Member")
+        print(userMap)
+    except Exception as e:
+        print(f'edit Diary get org members\n{e}')
+        
+    addMemberButton=tk.Button(frame4, text="Add Member +", font=('Helvetica',14),
+                              command=lambda:manageDiaryMembers(root, window, [frame4, errorFrame], membersCombo.get(), userMap, action="add"))
+    removeMemberButton=tk.Button(frame4, text="Remove Member -", font=('Helvetica',14),
+                              command=lambda:manageDiaryMembers(root, window, [frame4, errorFrame], membersCombo.get(), userMap, action="remove"))
+    
+    
     cancelButton=tk.Button(frame3, text='Cancel', command=lambda:window.root.destroy(), font=('Helvetica',12), bg="Light Blue")
     deleteButton=tk.Button(frame3, text='Delete This Diary', font=('Helvetica',12), bg="Red", fg="White")
     
     ##only passing the window to Save,
     ##so master of .removeWidgets(master) is None, which will close the whole window.
     saveButton=tk.Button(frame3, text='Save',  font=('Helvetica',12), bg="Green", fg="White")
-    saveButton.config(command=lambda cO=currentOrg,
-                    saveButton=saveButton:saveDiary(root, window, frame1, titleEntry.get(), subjectEntry.get(), cO, framesList))
 
     ##Add the contents to the window
     frame1.pack(fill='both')
     frame2.pack(fill='both')
-    frame3.pack(fill='both')
+    frame4.pack(fill='both')
+    frame3.pack(fill='both', side='bottom')
+    errorFrame.pack(fill='both', side='bottom')
     titleLabel.pack(side='left', padx=10, pady=10)
     titleEntry.pack(side='left', padx=10, pady=10)
     subjectLabel.pack(side='left', padx=5, pady=10)
     subjectEntry.pack(side='left', padx=5, pady=10)
+    membersLabel.pack(side='left', padx=5, pady=10)
+    membersCombo.pack(side='left', padx=5, pady=10)
+    addMemberButton.pack(side='left', padx=5, pady=10)
+    membersTextBox.pack(side='left', expand=True, padx=5, pady=10)
+    removeMemberButton.pack(side='right', padx=10, pady=10)
     saveButton.pack(side='right', padx=10, pady=10)
     cancelButton.pack(side='right', padx=10, pady=10)
     
     if diary:
         try:
+            root.cursor.execute(f"""SELECT DISTINCT diary_id, title, user_id, fullname, org_name FROM diaryinfopgvw WHERE org_name="{currentOrg}" AND title="{diary}";""")
+            result=root.cursor.fetchall()
+            for u in result:
+                membersTextBox.insert(tk.END, f"{u[3]}\n")
+            membersTextBox['state']='disabled'
             deleteButton.pack(side='right', padx=20, pady=10)
             root.cursor.execute(f"""SELECT diary_id, subject FROM diaryinfopgvw WHERE title='{diary}' AND org_name='{currentOrg}';""")
             data = root.cursor.fetchall()[0]
@@ -390,20 +480,20 @@ def editDiary(root, currentOrg, framesList, diary=None):
             subjectEntry.insert(0, subject)
 
             saveButton.config(command=lambda cO=currentOrg,
-                saveButton=saveButton:saveDiary(root, window, frame1, titleEntry.get(),
-                                            subjectEntry.get(), cO, framesList, action='edit', oldTitle=diary))
+                saveButton=saveButton:saveDiary(root, window, errorFrame, titleEntry.get(),
+                                            subjectEntry.get(), cO, membersTextBox, framesList, userMap, action='edit', oldTitle=diary))
 
             deleteButton.config(command=lambda cO=currentOrg,
-                    deleteButton=deleteButton:saveDiary(root, window, frame1, titleEntry.get(),
-                                            subjectEntry.get(), cO, framesList, action='delete', oldTitle=diary))
+                    deleteButton=deleteButton:saveDiary(root, window, errorFrame, titleEntry.get(),
+                                            subjectEntry.get(), cO, membersTextBox, framesList, userMap, action='delete', oldTitle=diary))
     
         except Exception as e:
             print("first Edit: ", e)
             
     else:
         saveButton.config(command=lambda cO=currentOrg,
-            saveButton=saveButton:saveDiary(root, window, frame1, titleEntry.get(), subjectEntry.get(),
-                                            cO, framesList, action='new'))
+            saveButton=saveButton:saveDiary(root, window, errorFrame, titleEntry.get(), subjectEntry.get(),
+                                            cO, membersTextBox, framesList, userMap, action='new'))
 
 
     window.run() ##open the window
@@ -560,7 +650,7 @@ def addEntry(root, currentOrg, framesList, diaryTitle):
 
     entryTypeLabel=tk.Label(frame3, text="Type:", font=('Helvetica',14), bg="Pink")
     entryTypeCombo=Combobox(frame3, font=('Helvetica',12), state='readonly')
-    entryTypeCombo['values']= ('Meeting', 'Note')#get list of all entry types
+    entryTypeCombo['values']= ('Note', 'Meeting')#get list of all entry types
     entryTypeCombo.current(0)
     
 
@@ -581,7 +671,7 @@ def addEntry(root, currentOrg, framesList, diaryTitle):
     cancelButton=tk.Button(frame4, text='Cancel', command=lambda:window.root.destroy(), font=('Helvetica',12), bg="Light Blue")
 
     locInfo=[add1Entry, add2Entry, cityEntry, stateCombo, zipEntry]
-    info=[diaryTitle, titleEntry, startTimeEntry, endTimeEntry, descriptionEntry, priorityCombo, locInfo]
+    info=[diaryTitle, titleEntry, startTimeEntry, endTimeEntry, descriptionEntry, priorityCombo, entryTypeCombo, locInfo]
     
     saveButton=tk.Button(frame4, text='Save',  font=('Helvetica',12), bg="Green", fg="White")
     saveButton.config(command=lambda cO=currentOrg,
@@ -606,6 +696,8 @@ def addEntry(root, currentOrg, framesList, diaryTitle):
     endTimeEntry.grid(column=4, row=3, padx=10, pady=10)
     priorityLabel.grid(column=1, row=5, padx=10, pady=10)
     priorityCombo.grid(column=2, row=5, padx=10, pady=10)
+    entryTypeLabel.grid(column=3, row=5, padx=10, pady=10)
+    entryTypeCombo.grid(column=4, row=5, padx=10, pady=10)
     
     locationLabel.grid(column=1, row=1, padx=10, pady=10)
     add1Label.grid(column=1, row=2, padx=10, pady=10)
@@ -649,13 +741,20 @@ def saveEntry(root, window, frame, info, framesList):
         case 'High': priority=3
         case _: priority=0
     diary_id, org_id = root.cursor.fetchall()[0]
-    entryType_id=1
+
+    try:
+        root.cursor.execute(f"SELECT entryType_id FROM entryTypes WHERE name='{info[6].get()}';")
+    except Exception as e:
+        print(f"Save Entry Get entryTypeId:\n{e}")
+        return
+    entryType_id = root.cursor.fetchall()[0][0]
+    
     loc_id='NULL'
 
     try:
         root.cursor.execute(f"""INSERT INTO teamsweetdreams_dms.entries
 (entry_title, start_time, end_time, description, priority, entryType_id, entryOwner_id, entryOrg_id, entryDiary_id, location_id)
-VALUES ("{info[1].get()}", "{info[2].get()}", "{info[3].get()}", "{info[4].get()}", {priority}, {1}, {root.currentUser_id}, {org_id}, {diary_id}, {loc_id})""")
+VALUES ("{info[1].get()}", "{info[2].get()}", "{info[3].get()}", "{info[4].get()}", {priority}, {entryType_id}, {root.currentUser_id}, {org_id}, {diary_id}, {loc_id})""")
         root.connection.commit()
 
     except Exception as e:
