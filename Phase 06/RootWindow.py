@@ -1,6 +1,6 @@
 ##Team Sweet Dreams Diary Management System
 ##created on: 11/14/2023
-##last edited: 11/29/2023
+##last edited: 1/2/2023
 
 ##The following code defines the class RootWindow
 ##represents the root window for the Diary Management System tkinter application
@@ -8,7 +8,7 @@
 import tkinter as tk
 from PIL import Image, ImageTk
 import mysql.connector ##import the connector to connect to our mysql database
-
+import json
 
 class RootWindow():
     def __init__(self, title="Diary Management System"):
@@ -40,6 +40,15 @@ class RootWindow():
             self.cursor.execute(f"""SELECT * FROM Users WHERE user_id={self.currentUser_id};""")
             return self.cursor.fetchall()[0]
 
+    def getOrgUserInfo(self, currentOrg):
+        userMap=[]
+        self.cursor.execute(f"""SELECT DISTINCT diary_id, title, user_id, fullname, org_name FROM diaryinfopgvw WHERE org_name="{currentOrg}";""")
+        result=self.cursor.fetchall()
+        for i in result:
+            if i[3] not in userMap:
+                userMap.append({"name":i[3], "user_id":i[2], "title":i[1], "diary_id":i[0], "org":i[4]})
+        return userMap
+
     def getUserDiaryData(self):
         if self.currentUser_id:
             self.cursor.execute(f"""SELECT title, O.org_name, O.org_id FROM Users U
@@ -54,7 +63,7 @@ ORDER BY D.diary_id;""")
 
     def getUserOrgData(self):
         if self.currentUser_id:
-            self.cursor.execute(f"""SELECT OM.org_id, O.org_name FROM Users U
+            self.cursor.execute(f"""SELECT OM.org_id, O.org_name, U.user_id, U.fullname FROM Users U
 INNER JOIN organizationmembers OM ON OM.user_id = U.user_id
 INNER JOIN Organizations O ON O.org_id = OM.org_id
 WHERE U.user_id = {self.currentUser_id}
@@ -99,6 +108,13 @@ ORDER BY U.user_id;""")
         resized_image = img.resize((w,h), Image.Resampling.LANCZOS) # resize, remove structural padding
         new_image = ImageTk.PhotoImage(resized_image)# convert to photoimage
         return new_image
+
+    def _getJsonData(self):
+        ##In the future, it would be useful
+        ##to have a json of all data needed
+        ##rather than refrencing by list index.
+        pass
+
 
     
     def run(self):
