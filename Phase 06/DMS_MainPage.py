@@ -294,63 +294,91 @@ def showOrgDiaries(root, framesList, currentOrg, returnTitle=None):
     createDiary(root, framesList, currentOrg, diaryTitle=returnTitle) 
 
 
-def saveDiary(root, window, frame, title, subject, currentOrg, membersTextBox, framesList, userMap, action, oldTitle=None):
+def saveDiary(root, window, frame, title, subject, currentOrg, membersTextBox, framesList, userMap, currentMembers, action, oldTitle=None):
+    ##creates a new diary or deletes or edits an existing diary.
+
+    ##need to add other verification! verify entry lengths, cannot delete yourself from diary
+    ##should change implementation so that diary_id can be retreived easily from root.
+    
     if not title:
         errorLabel = tk.Label(frame, text="Please enter a title.", bg="Pink", fg="Red")
         errorLabel.pack(side='bottom', padx=10, pady=15)
         return
     now = datetime.datetime.now().strftime('%y-%m-%d %H:%M:%S')
 
-    if action == 'new': ##create a new diary
-        try:
-            root.cursor.execute(f"SELECT org_id FROM Organizations WHERE org_name = '{currentOrg}';")
-            org_id = root.cursor.fetchall()[0][0]
+    if action == 'delete': ##delete the existing diary
+        answer=tk.messagebox.askyesno('Delete Diary', f"""Are you sure you want to delete {title}?""")
+        if answer:
+            try:
+                root.cursor.execute(f"""SELECT diary_id FROM Diaries WHERE title="{oldTitle}";""")
+                diary_id = root.cursor.fetchall()[0][0]
+                root.cursor.execute(f"""DELETE FROM Diaries WHERE diary_id="{int(diary_id)}";""")
+                root.connection.commit()
+            except Exception as e:
+                print("save delete diary:\n", e)     
 
-            root.cursor.execute(f"""INSERT INTO Diaries (title, date_created, last_updated, owner_id, subject, diaryOrg_id)
-            VALUES("{title}", "{now}", "{now}", {root.currentUser_id}, "{subject}", {org_id});""")
-            root.connection.commit()
-            
-            root.cursor.execute(f"""INSERT INTO UserDiaries (user_id, diary_id) VALUES ({root.currentUser_id}, (SELECT MAX(LAST_INSERT_ID()) FROM Diaries));""")
-            root.connection.commit()
-        except Exception as e:
-            print("save new Diary: ", e)
 
-    elif action == 'edit': ##edit the existing diary
-        try:
-            root.cursor.execute(f"SELECT diary_id FROM Diaries WHERE title='{oldTitle}';")
-            diary_id = root.cursor.fetchall()[0][0]
-            root.cursor.execute(f"""UPDATE Diaries
-SET title="{title}", last_updated="{now}", subject="{subject}" WHERE diary_id='{int(diary_id)}';""")
-            root.connection.commit()
-        except Exception as e:
-            print("save edit diary: ", e)
+    elif action != 'delete':
+        if action == 'new': ##create a new diary
+            try:
+                root.cursor.execute(f"""SELECT org_id FROM Organizations WHERE org_name = "{currentOrg}";""")
+                org_id = root.cursor.fetchall()[0][0]
 
-    elif action == 'delete': ##delete the existing diary
-        try:
-            root.cursor.execute(f"SELECT diary_id FROM Diaries WHERE title='{oldTitle}';")
-            diary_id = root.cursor.fetchall()[0][0]
-            root.cursor.execute(f"""DELETE FROM Diaries WHERE diary_id='{int(diary_id)}';""")
-            root.connection.commit()
-        except Exception as e:
-            print("save delete diary:\n", e)
+                root.cursor.execute(f"""INSERT INTO Diaries (title, date_created, last_updated, owner_id, subject, diaryOrg_id)
+                VALUES("{title}", "{now}", "{now}", {root.currentUser_id}, "{subject}", {org_id});""")
+                root.connection.commit()
+                root.cursor.execute(f"""INSERT INTO UserDiaries (user_id, diary_id) VALUES ({root.currentUser_id}, (SELECT MAX(LAST_INSERT_ID()) FROM Diaries));""")
+                root.connection.commit()
+            except Exception as e:
+                print("ERROR: save new Diary: ", e)
 
-    membersList = membersTextBox.get(1.0, "end - 1 lines").rstrip().split("\n")
-    if membersList:
-        addingList=[]
-        for u in userMap:
+        elif action == 'edit': ##edit the existing diary
+            try:
+                root.cursor.execute(f"""SELECT diary_id FROM Diaries WHERE title="{oldTitle}";""")
+                diary_id = root.cursor.fetchall()[0][0]
+                root.cursor.execute(f"""UPDATE Diaries
+    SET title="{title}", last_updated="{now}", subject="{subject}" WHERE diary_id="{int(diary_id)}";""")
+                root.connection.commit()
+            except Exception as e:
+                print("ERROR: Save edit diary: ", e)
+
+
+        
+        membersList = membersTextBox.get(0.0, "end - 1 lines").rstrip().split("\n") ##get the contents of the textBox AFTER changes have been made
+        if membersList:
+            for i in currentMembers:## currentMembers: ORIGINAL value of the textBox BEFORE changes were made.
+                if i not in membersList: ##if an original member is no longer in the text box, delete it.
+                    print(f"delete user {i}")
+                    for u in userMap:
+                        if i==u['name'] and u['title']==title:
+                            try:
+                                root.cursor.execute(f"""DELETE FROM UserDiaries WHERE user_id={u['user_id']} and diary_id={u['diary_id']};""")
+                                root.connection.commit()
+                                print("deleted!")
+                            except Exception as e:
+                                print(f"ERROR: Delete user: {e}")
+
             for member in membersList:
-                if member==u['name'] and (u['user_id'], u['diary_id']) not in addingList and u['title']==title:
-                    addingList.append((u['user_id'], u['diary_id']))
-                    print(f"{addingList}")
-
-        for item in addingList:
-            print(item)
-##            try:
-##                ##Need to perform an update between what the addition looks like and what the existing UserDiaries looks like.
-##                root.cursor.execute(f"""INSERT INTO UserDiaries (user_id, diary_id) VALUES ({item[0]}, ({item[1]});""")
-##                root.connection.commit()
-##            except Exception as e:
-##                print(f"Insert Into UserDiaries:\n{e}")
+                if member not in currentMembers:
+                    print(f"add user {member}")
+                    for u in userMap:
+                        if member==u['name']:
+                            try:
+                                if action=='new':
+                                    root.cursor.execute(f"""INSERT INTO UserDiaries (user_id, diary_id) VALUES ({u['user_id']}, (SELECT MAX(LAST_INSERT_ID()) FROM Diaries));""")
+                                    root.connection.commit()
+                                    print("added! (new)")
+                                elif action == 'edit':
+                                    root.cursor.execute(f"""INSERT INTO UserDiaries (user_id, diary_id) VALUES ({u['user_id']}, {root.getDiaryIdByTitle(title)});""")
+                                    root.connection.commit()
+                                    print("added! (edit)")
+                                else:
+                                    print("Action: ", action)
+                            except Exception as e:
+                                if "1062 (23000): Duplicate entry" in str(e):
+                                    continue
+                                else: print(f"ERROR: Add user: {e}")
+   
 
     window.removeWidgets(master=None) ##close the window
     showOrgDiaries(root, framesList, currentOrg, title)
@@ -416,16 +444,21 @@ def editDiary(root, currentOrg, framesList, diary=None):
     membersCombo=Combobox(frame4, font=('Helvetica', 12))
     membersTextBox=tk.Text(frame4, font=('Helvetica', 12), width=30, height=10)
 
-    userMap=root.getOrgUserInfo(currentOrg)
+    userMap=root.getOrgUserInfo(currentOrg) ##get all members in this organization
     availableMembers=[]
-
+    currentMembers=[]
+    currentUserName=''
+    
+    ##populate availableMembers, a list of only names from userMap.
     try:
         for i in userMap:
+            if i['user_id']==root.currentUser_id:
+                currentUserName=i['name']
             if i['name'] not in availableMembers:
                 availableMembers.append(i['name'])
         membersCombo['values']=availableMembers
         membersCombo.set("Choose a Member")
-        print(userMap)
+        print(userMap,"\n")
     except Exception as e:
         print(f'edit Diary get org members\n{e}')
         
@@ -462,13 +495,15 @@ def editDiary(root, currentOrg, framesList, diary=None):
     
     if diary:
         try:
+            ##select all members with access to this diary
             root.cursor.execute(f"""SELECT DISTINCT diary_id, title, user_id, fullname, org_name FROM diaryinfopgvw WHERE org_name="{currentOrg}" AND title="{diary}";""")
             result=root.cursor.fetchall()
             for u in result:
+                currentMembers.append(u[3])
                 membersTextBox.insert(tk.END, f"{u[3]}\n")
             membersTextBox['state']='disabled'
             deleteButton.pack(side='right', padx=20, pady=10)
-            root.cursor.execute(f"""SELECT diary_id, subject FROM diaryinfopgvw WHERE title='{diary}' AND org_name='{currentOrg}';""")
+            root.cursor.execute(f"""SELECT diary_id, subject FROM diaryinfopgvw WHERE title="{diary}" AND org_name="{currentOrg}";""")
             data = root.cursor.fetchall()[0]
             diary_id, subject = data[0], data[1]
             
@@ -481,20 +516,22 @@ def editDiary(root, currentOrg, framesList, diary=None):
 
             saveButton.config(command=lambda cO=currentOrg,
                 saveButton=saveButton:saveDiary(root, window, errorFrame, titleEntry.get(),
-                                            subjectEntry.get(), cO, membersTextBox, framesList, userMap, action='edit', oldTitle=diary))
+                                            subjectEntry.get(), cO, membersTextBox, framesList, userMap, currentMembers, action='edit', oldTitle=diary))
 
             deleteButton.config(command=lambda cO=currentOrg,
                     deleteButton=deleteButton:saveDiary(root, window, errorFrame, titleEntry.get(),
-                                            subjectEntry.get(), cO, membersTextBox, framesList, userMap, action='delete', oldTitle=diary))
+                                            subjectEntry.get(), cO, membersTextBox, framesList, userMap, currentMembers, action='delete', oldTitle=diary))
     
         except Exception as e:
             print("first Edit: ", e)
             
     else:
+        currentMembers.append(currentUserName)
+        membersTextBox.insert(tk.END, f"{currentUserName}\n")
+        membersTextBox['state']='disabled'
         saveButton.config(command=lambda cO=currentOrg,
             saveButton=saveButton:saveDiary(root, window, errorFrame, titleEntry.get(), subjectEntry.get(),
-                                            cO, membersTextBox, framesList, userMap, action='new'))
-
+                                            cO, membersTextBox, framesList, userMap, currentMembers, action='new'))
 
     window.run() ##open the window
 
@@ -506,7 +543,7 @@ def createDiary(root, framesList, currentOrg, diaryTitle=None):
     cdf = framesList[1]
 
     ##Retrieve a specified user's diaries
-    root.cursor.execute(f"SELECT title, org_name FROM diaryinfopgvw WHERE user_id = '{root.currentUser_id}'")
+    root.cursor.execute(f"""SELECT title, org_name FROM diaryinfopgvw WHERE user_id = "{root.currentUser_id}";""")
     diaries = root.cursor.fetchall()
         
     ##clear the screen
@@ -729,7 +766,7 @@ def saveEntry(root, window, frame, info, framesList):
             return
         
     try:
-        root.cursor.execute(f"SELECT diary_id, diaryOrg_id FROM diaryinfopgvw WHERE title='{info[0]}';")
+        root.cursor.execute(f"""SELECT diary_id, diaryOrg_id FROM diaryinfopgvw WHERE title="{info[0]}";""")
     except Exception as e:
         print(f"Save Entry Get DiaryId, OrgId:\n{e}\n{info[0]}")
         return
@@ -743,7 +780,7 @@ def saveEntry(root, window, frame, info, framesList):
     diary_id, org_id = root.cursor.fetchall()[0]
 
     try:
-        root.cursor.execute(f"SELECT entryType_id FROM entryTypes WHERE name='{info[6].get()}';")
+        root.cursor.execute(f"""SELECT entryType_id FROM entryTypes WHERE name="{info[6].get()}";""")
     except Exception as e:
         print(f"Save Entry Get entryTypeId:\n{e}")
         return
@@ -781,7 +818,7 @@ def iterateEntries(root, entryFrame, diaryTitle, query=None):
 
     if not query:
         query = f"""SELECT entry_title, start_time, priority, entryOwner_id
-FROM EntryInfoPgVW WHERE diary_title = '{diaryTitle}'ORDER BY priority DESC;"""
+FROM EntryInfoPgVW WHERE diary_title = "{diaryTitle}" ORDER BY priority DESC;"""
 
     root.cursor.execute(query)
     entries = root.cursor.fetchall()
@@ -866,15 +903,15 @@ def searchEntries(root, entryFrame, diaryTitle, criteria, details):
     query= ''
     match criteria:
         case "Place":
-            query=f"""SELECT location_id, address_ln_1, address_ln2, city, state, zip FROM EntryInfoPgVW WHERE (address_ln_1 LIKE '%{details}%' OR address_ln2 LIKE '%{details}%' OR city LIKE '%{details}%' OR state LIKE '%{details}%' OR zip LIKE '%{details}%')AND title = '{diaryTitle}';"""
+            query=f"""SELECT location_id, address_ln_1, address_ln2, city, state, zip FROM EntryInfoPgVW WHERE (address_ln_1 LIKE "%{details}%" OR address_ln2 LIKE "%{details}%" OR city LIKE "%{details}%" OR state LIKE "%{details}%" OR zip LIKE "%{details}%")AND title = "{diaryTitle}";"""
         case "Date":
-            query=f"""SELECT entry_title, start_time FROM EntryInfoPgVW WHERE start_time LIKE '{details}%';"""
+            query=f"""SELECT entry_title, start_time FROM EntryInfoPgVW WHERE start_time LIKE "{details}%";"""
 
         case "Time":
-            query=f"""SELECT entry_title, start_time FROM EntryInfoPgVW WHERE start_time LIKE '%{details}';"""
+            query=f"""SELECT entry_title, start_time FROM EntryInfoPgVW WHERE start_time LIKE "%{details}";"""
 
         case "Duration":
-            query=f"""SELECT entry_title, start_time FROM EntryInfoPgVW WHERE duration LIKE '{details}';"""
+            query=f"""SELECT entry_title, start_time FROM EntryInfoPgVW WHERE duration LIKE "{details}";"""
     iterateEntries(root, entryFrame, diaryTitle, query=query)
     
 
