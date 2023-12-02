@@ -49,6 +49,14 @@ class RootWindow():
                 userMap.append({"name":i[3], "user_id":i[2], "title":i[1], "diary_id":i[0], "org":i[4]})
         return userMap
 
+    def getDiaryIdByTitle(self, title):
+        try:
+            self.cursor.execute(f"""SELECT diary_id FROM Diaries WHERE title="{title}";""")
+            return self.cursor.fetchall()[0][0]
+        except Exception as e:
+            print(f"ERROR: getDiaryIdByTitle:{e}")
+    
+
     def getUserDiaryData(self):
         if self.currentUser_id:
             self.cursor.execute(f"""SELECT title, O.org_name, O.org_id FROM Users U
