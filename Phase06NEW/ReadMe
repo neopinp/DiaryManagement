@@ -1,5 +1,5 @@
 This folder contains the updated phase 06 files.
-Download and run the sql files TeamSweetDreams_DMS_CreateDatabase.sql, TeamSweetDreams_DMS_PopulateTables.sql, 
+Download and run the sql files TeamSweetDreams_DMS_CreateTables.sql, TeamSweetDreams_DMS_PopulateTables.sql, 
   TeamSweetDreams_DMS_CreateViews.sql, and TeamSweetDreams_DMS_CreateStoredProcedures.sql.
 DOwnload the .py files.
 Then, run the python application from TSW_DMS.py.
