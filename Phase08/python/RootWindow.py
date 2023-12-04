@@ -108,6 +108,26 @@ ORDER BY U.user_id;""")
             count+=1
         return ddd
 
+    def getUserData(self, user=None):
+        userDict={"Users": []}
+        self.cursor.execute(f"""SELECT user_id, fname, lname, fullname, username, date_joined, activity_id, role_id FROM Users;""")
+        d=self.cursor.fetchall()
+        for i in d:
+            userDict['Users'].append({f"user_id": i[0]
+                                    , f"firstName": i[1]
+                                    , f"lastName": i[2]
+                                    , f"fullname": i[3]
+                                    , f"username": i[4]
+                                    , f"date_joined": i[5]
+                                    , f"activity_id": i[6]
+                                    , f"role_id": i[7]
+                                    })
+        if user:
+            for i in userDict['Users']:
+                if i['user_id']==self.currentUser_id:
+                    return i
+        else:
+            return userDict['Users']
 
     def __getAllWidgets(self):
     ##this function references all widgets in a frame
@@ -149,8 +169,3 @@ ORDER BY U.user_id;""")
     
     def run(self):
         self.root.mainloop()
-
-
-
-    
-    
