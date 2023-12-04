@@ -1,6 +1,6 @@
 ##Team Sweet Dreams Diary Management System
 ##Created on: 11/14/2023
-##Last Updated: 11/27/2023
+##Last Updated: 12/1/2023
 
 ##The following code defines the Login page of the Diary Management System
 ##If a user is not logged in, this screen will appear.
@@ -17,7 +17,6 @@ def Action(root, username, password, master=None):
     ##otherwise, shows a warning and allows the user to retry.
     
     user_id=verifyCredentials(root, username, password)
-    #user_id=1
     if user_id:
         root.cursor.execute(f"""SELECT fullname FROM Users WHERE user_id={user_id};""")
         fullname = root.cursor.fetchone()[0]
@@ -78,5 +77,4 @@ def Login(root):
     passwordLabel.grid(column=1,row=2, sticky='nsew')
     passEntry.grid(column=2,row=2, sticky='nsew')
     loginButton.pack(padx=10, pady=15)
-    
     
