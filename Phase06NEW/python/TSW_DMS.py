@@ -4,7 +4,6 @@
 
 ##The following code will open the DMS app when run, starting at the login page.
 
-import tkinter as tk
 import DMS_Login
 from RootWindow import RootWindow
 
