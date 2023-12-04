@@ -1,6 +1,6 @@
 ##Team Sweet Dreams Diary Management System
 ##created on: 11/15/23
-##last updated: 12/3/2023
+##last updated: 12/4/2023
 
 ##The following code defines the main screen for the Diary Management System.
 ##If a user is logged in successfully, this screen will appear.
@@ -86,17 +86,22 @@ def openSettings(root):
     frame2.pack(fill='both')
     frame3.pack(side='right', fill='both')
     
+    userDict=root.getUserData(user=root.currentUser_id)
+    
     nameLabel=tk.Label(frame1, text="Name:", font=("Helvetica", 14), bg="White", fg="Purple", justify='left')
-    nameInfo=tk.Label(frame1, text=f'{root.getCurrentUserDetails()[3]}', font=("Helvetica", 14), bg="White", fg="Purple") #Displays Name
+    nameInfo=tk.Label(frame1, text=f"{userDict['fullname']}", font=("Helvetica", 14), bg="White", fg="Purple") #Displays Name
     
     usernameLabel=tk.Label(frame1, text="Username:", font=("Helvetica", 14), bg="White", fg="Purple")
-    usernameInfo=tk.Label(frame1, text=f'{root.getCurrentUserDetails()[4]}', font=("Helvetica", 14), bg="White", fg="Purple") # Displays Username
+    usernameInfo=tk.Label(frame1, text=f"{userDict['username']}", font=("Helvetica", 14), bg="White", fg="Purple") # Displays Username
+    
+    djLabel=tk.Label(frame1, text="Date Joined:", font=("Helvetica", 14), bg="White", fg="Purple")
+    djInfo=tk.Label(frame1, text=f"{userDict['date_joined'].strftime('%m/%d/%Y')}", font=("Helvetica", 14), bg="White", fg="Purple") # Displays date joined
 
     orgsLabel=tk.Label(frame1, text="\nYour Organizations:\n -----------------", font=("Helvetica", 18), bg="White", fg="Purple")
 
     orgsFrame=tk.Frame(frame1, bg="White")
     
-    r=3
+    r=4
     orgs=root.getOrgDataDict()
     for org in orgs["Organizations"]:
         r+=1
@@ -125,13 +130,14 @@ def openSettings(root):
     
     #editButton.grid(column=3, row=1)
     nameLabel.grid(column=1, row=1)
-
     usernameLabel.grid(column=1, row=2)
+    djLabel.grid(column=1, row=3)
     #passLabel.grid(column=1, row=5)
-    orgsLabel.grid(column=1, row=3)
+    orgsLabel.grid(column=1, row=4)
     
     nameInfo.grid(column=2, row=1)
     usernameInfo.grid(column=2, row=2)
+    djInfo.grid(column=2, row=3)
 
     logoutButton.pack(pady=10)
     aboutUsButton.pack(pady=10)
