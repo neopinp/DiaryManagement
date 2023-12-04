@@ -1,6 +1,6 @@
 ##Team Sweet Dreams Diary Management System
 ##created on: 11/15/23
-##last updated: 1/2/2023
+##last updated: 12/4/2023
 
 ##The following code defines the main screen for the Diary Management System.
 ##If a user is logged in successfully, this screen will appear.
@@ -82,21 +82,42 @@ def openSettings(root):
     frame3 = tk.Frame(availableSpace, bg='Purple')
 
     availableSpace.pack(fill='both')
-    frame1.pack(side='left', fill='both')
+    frame1.pack(side='left', fill='both', pady=20)
     frame2.pack(fill='both')
     frame3.pack(side='right', fill='both')
     
-    nameLabel=tk.Label(frame1, text="Name:")
-    nameInfo=tk.Label(frame1, text=f'{root.getCurrentUserDetails()[3]}') #Displays Name
+    userDict=root.getUserData(user=root.currentUser_id)
     
-    usernameLabel=tk.Label(frame1, text="Username:")
-    usernameInfo=tk.Label(frame1, text=f'{root.getCurrentUserDetails()[4]}') # Displays Username
+    nameLabel=tk.Label(frame1, text="Name:", font=("Helvetica", 14), bg="White", fg="Purple", justify='left')
+    nameInfo=tk.Label(frame1, text=f"{userDict['fullname']}", font=("Helvetica", 14), bg="White", fg="Purple") #Displays Name
+    
+    usernameLabel=tk.Label(frame1, text="Username:", font=("Helvetica", 14), bg="White", fg="Purple")
+    usernameInfo=tk.Label(frame1, text=f"{userDict['username']}", font=("Helvetica", 14), bg="White", fg="Purple") # Displays Username
+    
+    djLabel=tk.Label(frame1, text="Date Joined:", font=("Helvetica", 14), bg="White", fg="Purple")
+    djInfo=tk.Label(frame1, text=f"{userDict['date_joined'].strftime('%m/%d/%Y')}", font=("Helvetica", 14), bg="White", fg="Purple") # Displays date joined
 
-    passLabel=tk.Label(frame1, text="Password:")
-    passInfo=tk.Label(frame1, text="*********")
+    orgsLabel=tk.Label(frame1, text="\nYour Organizations:\n -----------------", font=("Helvetica", 18), bg="White", fg="Purple")
 
-    orgsLabel=tk.Label(frame1, text="Your Organizations:")
-
+    orgsFrame=tk.Frame(frame1, bg="White")
+    
+    r=4
+    orgs=root.getOrgDataDict()
+    for org in orgs["Organizations"]:
+        r+=1
+        orgLab=tk.Label(frame1, text=f""" > {org['name']}""", font=("Helvetica", 14), bg="White", fg="Purple")
+        orgLab.grid(pady=5, sticky='nsw', column=1,row=r)
+        if org['diaries']:
+            r+=1
+            diaTitleLab=tk.Label(frame1, text=f"""            Diaries:""", font=("Helvetica", 12), bg="White", fg="Purple")
+            diaTitleLab.grid(pady=5, sticky='nsw', column=1,row=r)
+            for dia in org['diaries']:
+                r+=1
+                diaLab=tk.Label(frame1, text=f"""           > {dia['name']}""", font=("Helvetica", 12), bg="White", fg="Purple")
+                diaLab.grid(pady=1, sticky='nsw', column=1,row=r)
+        
+        
+    
     nameEntry=tk.Entry(frame1)
 
     editButton=tk.Button(frame1, text='Edit Information', command=lambda: editUserSettings(mainFrame))
@@ -109,13 +130,14 @@ def openSettings(root):
     
     #editButton.grid(column=3, row=1)
     nameLabel.grid(column=1, row=1)
-
     usernameLabel.grid(column=1, row=2)
+    djLabel.grid(column=1, row=3)
     #passLabel.grid(column=1, row=5)
-    orgsLabel.grid(column=1, row=3)
+    orgsLabel.grid(column=1, row=4)
     
     nameInfo.grid(column=2, row=1)
     usernameInfo.grid(column=2, row=2)
+    djInfo.grid(column=2, row=3)
 
     logoutButton.pack(pady=10)
     aboutUsButton.pack(pady=10)
@@ -348,30 +370,25 @@ def saveDiary(root, window, frame, title, subject, currentOrg, membersTextBox, f
         if membersList:
             for i in currentMembers:## currentMembers: ORIGINAL value of the textBox BEFORE changes were made.
                 if i not in membersList: ##if an original member is no longer in the text box, delete it.
-                    print(f"delete user {i}")
                     for u in userMap:
                         if i==u['name'] and u['title']==title:
                             try:
                                 root.cursor.execute(f"""DELETE FROM UserDiaries WHERE user_id={u['user_id']} and diary_id={u['diary_id']};""")
                                 root.connection.commit()
-                                print("deleted!")
                             except Exception as e:
                                 print(f"ERROR: Delete user: {e}")
 
             for member in membersList:
                 if member not in currentMembers:
-                    print(f"add user {member}")
                     for u in userMap:
                         if member==u['name']:
                             try:
                                 if action=='new':
                                     root.cursor.execute(f"""INSERT INTO UserDiaries (user_id, diary_id) VALUES ({u['user_id']}, (SELECT MAX(LAST_INSERT_ID()) FROM Diaries));""")
                                     root.connection.commit()
-                                    print("added! (new)")
                                 elif action == 'edit':
                                     root.cursor.execute(f"""INSERT INTO UserDiaries (user_id, diary_id) VALUES ({u['user_id']}, {root.getDiaryIdByTitle(title)});""")
                                     root.connection.commit()
-                                    print("added! (edit)")
                                 else:
                                     print("Action: ", action)
                             except Exception as e:
@@ -434,6 +451,7 @@ def editDiary(root, currentOrg, framesList, diary=None):
     frame2 = tk.Frame(window.root, bg="Pink")
     frame3 = tk.Frame(window.root, bg="Pink")
     frame4 = tk.Frame(window.root, bg="Pink")
+    lf = tk.LabelFrame(frame4, text='Members with Access:', bg="Pink")
     errorFrame = tk.Frame(window.root, bg="Pink")
     titleLabel=tk.Label(frame1, text="Diary title:", font=('Helvetica',14), bg="Pink")
     titleEntry=tk.Entry(frame1, font=('Helvetica',12))
@@ -442,30 +460,27 @@ def editDiary(root, currentOrg, framesList, diary=None):
 
     membersLabel=tk.Label(frame4, text="Add or Remove Members:", font=('Helvetica',14), bg="Pink")
     membersCombo=Combobox(frame4, font=('Helvetica', 12))
-    membersTextBox=tk.Text(frame4, font=('Helvetica', 12), width=30, height=10)
+    membersTextBox=tk.Text(lf, font=('Helvetica', 12), width=30, height=10)
 
     userMap=root.getOrgUserInfo(currentOrg) ##get all members in this organization
     availableMembers=[]
     currentMembers=[]
-    currentUserName=''
+    currentUserName=root.getCurrentUserDetails()[3]
     
     ##populate availableMembers, a list of only names from userMap.
     try:
         for i in userMap:
-            if i['user_id']==root.currentUser_id:
-                currentUserName=i['name']
             if i['name'] not in availableMembers:
                 availableMembers.append(i['name'])
         membersCombo['values']=availableMembers
         membersCombo.set("Choose a Member")
-        print(userMap,"\n")
     except Exception as e:
         print(f'edit Diary get org members\n{e}')
         
     addMemberButton=tk.Button(frame4, text="Add Member +", font=('Helvetica',14),
-                              command=lambda:manageDiaryMembers(root, window, [frame4, errorFrame], membersCombo.get(), userMap, action="add"))
+                              command=lambda:manageDiaryMembers(root, window, [lf, errorFrame], membersCombo.get(), userMap, action="add"))
     removeMemberButton=tk.Button(frame4, text="Remove Member -", font=('Helvetica',14),
-                              command=lambda:manageDiaryMembers(root, window, [frame4, errorFrame], membersCombo.get(), userMap, action="remove"))
+                              command=lambda:manageDiaryMembers(root, window, [lf, errorFrame], membersCombo.get(), userMap, action="remove"))
     
     
     cancelButton=tk.Button(frame3, text='Cancel', command=lambda:window.root.destroy(), font=('Helvetica',12), bg="Light Blue")
@@ -488,6 +503,7 @@ def editDiary(root, currentOrg, framesList, diary=None):
     membersLabel.pack(side='left', padx=5, pady=10)
     membersCombo.pack(side='left', padx=5, pady=10)
     addMemberButton.pack(side='left', padx=5, pady=10)
+    lf.pack(side='left', expand=True, padx=5, pady=10)
     membersTextBox.pack(side='left', expand=True, padx=5, pady=10)
     removeMemberButton.pack(side='right', padx=10, pady=10)
     saveButton.pack(side='right', padx=10, pady=10)
@@ -789,9 +805,9 @@ def saveEntry(root, window, frame, info, framesList):
     loc_id='NULL'
 
     try:
-        root.cursor.execute(f"""INSERT INTO teamsweetdreams_dms.entries
+        root.cursor.execute(f"""INSERT INTO entries
 (entry_title, start_time, end_time, description, priority, entryType_id, entryOwner_id, entryOrg_id, entryDiary_id, location_id)
-VALUES ("{info[1].get()}", "{info[2].get()}", "{info[3].get()}", "{info[4].get()}", {priority}, {entryType_id}, {root.currentUser_id}, {org_id}, {diary_id}, {loc_id})""")
+VALUES ("{info[1].get()}", "{datetime.datetime.strptime(info[2].get(), '%d/%m/%y').strftime('%Y-%m-%d')}", "{datetime.datetime.strptime(info[3].get(), '%d/%m/%y').strftime('%Y-%m-%d')}", "{info[4].get()}", {priority}, {entryType_id}, {root.currentUser_id}, {org_id}, {diary_id}, {loc_id})""")
         root.connection.commit()
 
     except Exception as e:

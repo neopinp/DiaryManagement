@@ -1,0 +1,14 @@
+>This folder contains the relevant python files for TSW DMS.
+
+>Please ensure you pip install the following modules in order to run this app:
+pip install pillow
+pip install mysql-connector-python
+pip install python-dotenv
+
+>In this directory, please create an .env file that contains the following information regarding your database management system:
+HOST=<hostname>
+USER=<username>
+PASSWORD=<password>
+HOST=<database name>
+
+>The above will allow you to access your database from the application.

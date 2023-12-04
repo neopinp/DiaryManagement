@@ -1,17 +1,28 @@
 ##Team Sweet Dreams Diary Management System
 ##created on: 11/14/2023
-##last edited: 1/2/2023
+##last edited: 12/3/2023
 
 ##The following code defines the class RootWindow
 ##represents the root window for the Diary Management System tkinter application
 
+import os
+from dotenv import load_dotenv
 import tkinter as tk
 from PIL import Image, ImageTk
 import mysql.connector ##import the connector to connect to our mysql database
-import json
+
+def getEnvVariables():
+    load_dotenv()
+    env_vars = {
+        "HOST":os.getenv('HOST'),
+        "USER":os.getenv('USER'),
+        "PASSWORD":os.getenv('PASSWORD'),
+        "DATABASE":os.getenv('DATABASE')
+        }
+    return env_vars
 
 class RootWindow():
-    def __init__(self, title="Diary Management System"):
+    def __init__(self, ENV_VARIABLES=getEnvVariables(), title="Diary Management System"):
         self.root = tk.Tk() ##main window
         self.screen_width = self.root.winfo_screenwidth()
         self.screen_height = self.root.winfo_screenheight()-100
@@ -20,7 +31,11 @@ class RootWindow():
         self.root.title(title)
         self.currentUser_id = None
         ##the following field is used to reference the database connection.
-        self.connection = mysql.connector.connect(host="localhost", user="root", password='root', database="teamsweetdreams_dms")
+        self.connection = mysql.connector.connect(
+            host=ENV_VARIABLES['HOST'],
+            user=ENV_VARIABLES['USER'],
+            password=ENV_VARIABLES['PASSWORD'],
+            database=ENV_VARIABLES['DATABASE'])
         self.cursor = self.connection.cursor()
         self.details = {
             'currentPage':None, ##keep track of what page is being shown
@@ -78,7 +93,41 @@ WHERE U.user_id = {self.currentUser_id}
 ORDER BY U.user_id;""")
     
         return self.cursor.fetchall()
-        
+
+    def getOrgDataDict(self):
+        count=0
+        ddd={"Organizations": []}
+        orgs= self.getUserOrgData()
+        self.cursor.execute(f"""SELECT DISTINCT diary_id, title, subject, owner_id, diaryOrg_id from DiaryInfoPgVW WHERE user_id={self.currentUser_id};""")
+        diaries=self.cursor.fetchall()
+        for org in orgs:
+            ddd['Organizations'].append({"id":org[0], "name":org[1], "diaries":[]})
+            for dia in diaries:
+                if dia[4] == org[0]:
+                    ddd['Organizations'][count]['diaries'].append({"id":dia[0], "name":dia[1], "subject":dia[2], "owner":dia[3], "parentOrg":dia[4],"entries":[]})
+            count+=1
+        return ddd
+
+    def getUserData(self, user=None):
+        userDict={"Users": []}
+        self.cursor.execute(f"""SELECT user_id, fname, lname, fullname, username, date_joined, activity_id, role_id FROM Users;""")
+        d=self.cursor.fetchall()
+        for i in d:
+            userDict['Users'].append({f"user_id": i[0]
+                                    , f"firstName": i[1]
+                                    , f"lastName": i[2]
+                                    , f"fullname": i[3]
+                                    , f"username": i[4]
+                                    , f"date_joined": i[5]
+                                    , f"activity_id": i[6]
+                                    , f"role_id": i[7]
+                                    })
+        if user:
+            for i in userDict['Users']:
+                if i['user_id']==self.currentUser_id:
+                    return i
+        else:
+            return userDict['Users']
 
     def __getAllWidgets(self):
     ##this function references all widgets in a frame
@@ -117,18 +166,6 @@ ORDER BY U.user_id;""")
         new_image = ImageTk.PhotoImage(resized_image)# convert to photoimage
         return new_image
 
-    def _getJsonData(self):
-        ##In the future, it would be useful
-        ##to have a json of all data needed
-        ##rather than refrencing by list index.
-        pass
-
-
     
     def run(self):
         self.root.mainloop()
-
-
-
-    
-    

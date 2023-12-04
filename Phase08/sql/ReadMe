@@ -1,0 +1,8 @@
+> This folder houses the relevant SQL files for TSW DMS.
+> The database must be set up before the python files can be run.
+
+>Run the files in this order:
+  >TeamSweetDreams_DMS_CreateTables.sql
+  >TeamSweetDreams_DMS_PopulateTables.sql
+  >TeamSweetDreams_DMS_CreateViews.sql
+  >TeamSweetDreams_DMS_CreateStoredProcedures.sql
